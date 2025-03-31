@@ -1,0 +1,43 @@
+k8s
+
+minikube start --force --driver=docker
+
+kubectl get all 	->  list everything which is running on k8s server in default nameSpace
+kubectl get all -A  ->  list everything which is running on k8s server in all nameSpace
+
+if you are using the minikube the you can loin to minikube with below command (access the k8s server)
+command :- minikube ssh
+
+ ============================= deployment ============================= 
+
+deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+
+
+kubetcl get pods  											->  list all pods from server
+kubectl get rs                                              -> rs is replica set, will list all the pods from deployment
+kubectl scale deployment nginx-deployment --replicas=5      ->  without making any changes in yaml file we can scale up and down
+kubectl describe deployment nginx-deployment                ->  shows all the logs related to the deployment
+kubetcl delete deployment nginx-deployment 				    ->  delete deployment

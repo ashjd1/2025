@@ -1,0 +1,8 @@
+Elastic compute cloud instance (EC2)
+
+is a basically VM on aws
+
+how to login with .pem file
+command:- ssh -i <key.pem> <user>@<IP>
+
+thats it for EC2 then, beacuse all the other thing you can read from page and take action accordingly.

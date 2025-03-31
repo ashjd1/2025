@@ -1,0 +1,37 @@
+pod
+
+if you are using the minikube the you can loin to minikube with below command (access the k8s server)
+command :- minikube ssh
+
+ ============================= pod ============================= 
+
+pod.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
+  - name: ubuntu
+    image: ubuntu
+	
+	
+kubectl create -f pod.yaml  ->  create pod
+kubectl get pod			    ->  list all pods
+kubectl get pod -w          ->  w for watch, will list down logs runtime, if you delete pod, will shows deleted and started again.
+kubectl get pods -o wide    ->  get all the details related to pod like ip, restarts, host ip
+kubectl describe pod nginx  ->  shows all the details about pod creation.
+kubectl detele pod nginx    ->  delete pod
+
+==========================================================================
+you can acess the pod inside k8s server
+steps :-
+
+get the pod "IP ADDRESS" with (kubectl get pod -o wide) command
+login to minikube with (minikube ssh) command
+now run curl -L http://<IP ADDRESS>.

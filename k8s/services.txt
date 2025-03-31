@@ -1,0 +1,59 @@
+services (svc)
+
+When you create a pod, it gets an IP address. However, if you delete that pod and it is recreated, 
+it will have a different IP address. Now, where a customer is accessing your service, and the pod is down. 
+When the pod responds, it has a different IP address, and the customer can no longer access it.
+
+To address this issue, **services** come into play. Services group pods together based on their metadata, 
+such as labels, selector, app name, etc(as defined in the YAML file). Even if the pod is recreated with a new IP address, 
+it will still be part of the same service, ensuring that the customer can continue accessing the pod seamlessly.
+
+you can check below link for better understanding of k8s arch
+https://github.com/ashjd1/k8s/blob/start-again/k8s%20arch.svg
+
+if you are using the minikube the you can loin to minikube with below command (access the k8s server)
+command :- minikube ssh
+
+type of services  ->   access
+================================
+cluster IP        ->   only in k8s server
+nodeport          ->   only those have access to node
+load balancer     ->   external woorld
+
+if you are using the minikube the you can loin to minikube with below command and access pod which has created in cluster IP service
+command :- minikube ssh
+
+
+ ============================= services (cluster ip) ============================= 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP  # Default type, can be omitted as it's the default
+  
+  
+ ============================= services (NodePort) ============================= 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: NodePort # you can change this according to your use as loadbalancer, cluster IP and other. (by defalut it is cluster IP)
+  selector:
+    app: nginx   # this name has to match with template app name from deployment.
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30007
+
+
+kubectl edit svc my-service

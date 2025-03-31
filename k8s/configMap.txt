@@ -1,0 +1,135 @@
+configMap (cm)
+
+ConfigMap used to store non-sensitive configuration data in key-value pairs.
+making it easier to manage, update, and scale applications in a Kubernetes environment.
+
+Instead of hardcoding configuration settings like environment variables, file paths, or application settings directly 
+into your container, you can store them in a ConfigMap. This helps you to keep the container image flexible and reusable 
+across different environments.
+
+There are some details or evn var those changing frequently, for that we cant change whole progect there configMap 
+comes in picture, we can store details or env var in configMap.yaml file as mentioned below in 1st yaml and can be 
+used while creating pod or deployment. 
+
+
+ ============================= configMap ============================= 
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-cm
+data:
+  name: "Ashutosh Jadhav"
+
+
+
+ ============================= deployment for configMap (using above configMap)============================= 
+
+ ==== check the last env, how configMap is used ====
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-configmap
+data:
+  name: "Ashutosh Jadhav"
+root@ubuntu-k8s:~/yamlFiles# cat deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+        env:
+        - name: my-name                          # should be exectly same as name of confingMap (check above yaml)
+          valueFrom:
+            configMapKeyRef:
+              name: test-cm
+              key: name
+
+
+ ============================= ConfigMap as Volumes (using file)============================= 
+
+apiVersion: v1 
+kind: Pod
+metadata:
+  name: conf-demo-pod
+  
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: conf
+      mountPath: "/tmp/conf"
+  volumes:
+  - name: conf
+    configMap:
+      name: conf-demo-1
+      items:
+      - key: demo.conf
+        path: ./demo.conf        # provide your *.conf file and its path.
+
+ ============================= existing confingMap used directly in deployment ============================= 
+# for this kind of confing you need to create configMap 1st then you can use it in deployment
+
+
+cm.yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-configmap
+data:
+  name: "Ashutosh sunildatta Jadhav"
+
+ =============================
+deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: ashu-cm
+            mountPath: "/ashu/tosh"       # kubectl exec -it nginx-deployment -- cat /ashu/tosh/name
+      volumes:
+        - name: ashu-cm
+          configMap:
+            name: test-configmap 
+
+
+kubectl get cm      => list all configMap
+kubectl exec -it <name of pod> -- /bin/bash        => this command will tak you inside the pod

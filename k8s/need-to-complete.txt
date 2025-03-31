@@ -1,0 +1,9 @@
+NEED TO COVER IN K8S
+
+keplica sets 
+
+PV
+
+PVC
+
+DaemonSet
