@@ -1,0 +1,28 @@
+Virtual Private Cloud (VPC)
+
+A VPC is a virtual network that you create in the cloud. It allows you to have your own private section of the internet,
+just like having your own network within a larger network. Within this VPC, you can create and manage various resources,
+such as servers, databases, and storage.
+
+Think of it as having your own little "internet" within the bigger internet. This virtual network is completely isolated from
+other users' networks, so your data and applications are secure and protected.
+
+To connect your VPC to the internet or other networks, you can set up gateways or routers. 
+These act as entry and exit points for traffic going in and out of your VPC. You can control the flow of traffic and set 
+up security measures to protect your resources from unauthorized access.
+
+With a VPC, you have control over your network environment. You can define access rules, set up firewalls,
+and configure security groups to regulate who can access your resources and how they can communicate.
+
+user -> internet gateway -> public subnet -> NACL -> load balancer -> route tables -> security groups
+
+NACL (Network Access Control List)
+
+when you are creating VPS, AWS will crate internet gateway, NACL and route table by default
+
+steps for VPC 
+
+create VPC => VPC and more => create EC2 => change SG in EC2 to access from outside.
+			 (This option will create the all
+			 required thing like subnet, route table
+			 and internate gateway)

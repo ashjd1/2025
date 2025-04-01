@@ -1,3 +1,0 @@
-Elastic compute cloud instance (EC2)
-
-is a basically VM on aws
