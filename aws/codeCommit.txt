@@ -1,0 +1,9 @@
+codeCommit
+
+it is just a GIT on AWS it just a private GITHUB
+
+you can create repo in aws
+
+is it bad practise to use codeCommit with root user even the aws is not as compitable as iam as compare to root user from aws.
+
+we need to use all git commands to intract with aws repo.
