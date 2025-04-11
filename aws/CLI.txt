@@ -1,0 +1,6 @@
+aws CLI 
+
+
+aws --version
+
+aws configure => need to create the access keys from (security cridiantian) => (access key) => (create access key)

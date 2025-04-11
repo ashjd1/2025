@@ -1,0 +1,10 @@
+Cloud watch
+
+
+there are multuple thing you can configure in cloudWatch.
+
+like logs and event based trigrs.
+
+for the logs you dont have to do anything, just check the logs tab
+
+and for event creation, create the even attach the trigger to that even, then if the even it satisfied then the triger will get triger.

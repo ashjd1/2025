@@ -6,6 +6,8 @@ terraform is example of CFT (terraform can you used on cloud platform, but CFT i
 CLI is for quick action, instance output just like (ls for any resourese).
 CFT is a template, template written to do repetative task, like creating set of S3 bucket or EC2 instance, like that.
 
+check DFT yaml here
+https://github.com/ashjd1/2025/blob/main/aws/CFT-s3-bucket.yaml
 
 There are multiple ways to create the template like check the documention from AWS and write your own yaml and pprovide to cloudFormation 
 or you can create from modues on AWS platform itself.

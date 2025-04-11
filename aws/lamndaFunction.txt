@@ -1,0 +1,16 @@
+Lambda function 
+
+boto3 ==> we have all the code ready there for lamnda function, just write there what you want.
+
+lambdaFunction is basicely, you will create a function with some trigger attached,
+if that trigger hits then that lambdaFunction will get executed.
+
+lambdaFunction can be anything, like creating EC@ instance, creating S# bucket, taing logs from some location, anything you can create.
+
+
+lamndaFunction also used in serveless.
+
+
+refer below documentation 
+
+https://github.com/iam-veeramalla/aws-devops-zero-to-hero/tree/main/day-17
