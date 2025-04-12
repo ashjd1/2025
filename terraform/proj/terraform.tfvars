@@ -1,0 +1,5 @@
+instance_ami    = "ami-084568db4383264d4"
+instance_type   = "t2.micro"
+instance_subnet = "subnet-0d4071f3fc1caa2d8"
+instance_key    = "ubuntu-ppk-key"
+instance_name   = "ashuOnVSCode"

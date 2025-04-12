@@ -1,0 +1,175 @@
+modues
+
+
+with  the output module you will get public_ip at the end of logs
+
+$cat main.tf 
+resource "aws_instance" "example" {
+ ami           = var.instance_ami
+ instance_type = var.instance_type
+ subnet_id     = var.instance_subnet
+ key_name      = var.instance_key
+ tags = {
+  Name = var.instance_name
+ }
+}
+
+
+$cat provider.tf 
+provider "aws" {
+ region = "us-east-1"
+}
+
+
+$cat veriables.tf 
+variable "instance_name"{
+}
+
+variable "instance_ami"{
+}
+
+variable "instance_type"{
+}
+
+variable "instance_subnet"{
+}
+
+variable "instance_key"{
+}
+
+
+$cat terraform.tfvars 
+instance_ami    = "ami-084568db4383264d4"
+instance_type   = "t2.micro"
+instance_subnet = "subnet-0d4071f3fc1caa2d8"
+instance_key    = "ubuntu-ppk-key"
+instance_name   = "ashuOnVSCode"
+
+
+$cat output.tf 
+output "example_output" {
+    value = aws_instance.example.private_ip
+}
+
+
+
+
+output of terraform apply command 
+
+
+$terraform apply -auto-approve
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_instance.example will be created
+  + resource "aws_instance" "example" {
+      + ami                                  = "ami-084568db4383264d4"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = (known after apply)
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + disable_api_stop                     = (known after apply)
+      + disable_api_termination              = (known after apply)
+      + ebs_optimized                        = (known after apply)
+      + enable_primary_ipv6                  = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + host_resource_group_arn              = (known after apply)
+      + iam_instance_profile                 = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_lifecycle                   = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t2.micro"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "ubuntu-ppk-key"
+      + monitoring                           = (known after apply)
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + placement_partition_number           = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + spot_instance_request_id             = (known after apply)
+      + subnet_id                            = "subnet-0d4071f3fc1caa2d8"
+      + tags                                 = {
+          + "Name" = "ashuOnVSCode"
+        }
+      + tags_all                             = {
+          + "Name" = "ashuOnVSCode"
+        }
+      + tenancy                              = (known after apply)
+      + user_data                            = (known after apply)
+      + user_data_base64                     = (known after apply)
+      + user_data_replace_on_change          = false
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification (known after apply)
+
+      + cpu_options (known after apply)
+
+      + ebs_block_device (known after apply)
+
+      + enclave_options (known after apply)
+
+      + ephemeral_block_device (known after apply)
+
+      + instance_market_options (known after apply)
+
+      + maintenance_options (known after apply)
+
+      + metadata_options (known after apply)
+
+      + network_interface (known after apply)
+
+      + private_dns_name_options (known after apply)
+
+      + root_block_device (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + example_output = (known after apply)
+aws_instance.example: Creating...
+aws_instance.example: Still creating... [10s elapsed]
+aws_instance.example: Still creating... [20s elapsed]
+aws_instance.example: Creation complete after 22s [id=i-0d6ec767a833325fe]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+example_output = "172.31.30.119"
+
+
+
+now why it calls as modues
+because you can move all the files in one folder and create new main.tf as below and give of that dir
+then you dont need to redo all things, it will pick up most things and it will run automatically and create instance.
+
+
+main.tf
+provider "aws" {
+ region = "us-east-1"
+}
+
+module "example" {
+    source = "./modules/ashu"
+    instance_ami    = "ami-084568db4383264d4"
+    instance_type   = "t2.micro"
+    instance_subnet = "subnet-0d4071f3fc1caa2d8"
+    instance_key    = "ubuntu-ppk-key"
+    instance_name   = "ashuOnVSCode"
+}

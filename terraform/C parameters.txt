@@ -1,0 +1,45 @@
+parameters
+
+belwo is the example of input parameter, there are output parameters as well, if you want to store the ip adderes after instance 
+being created then that kind of info is stored in output parameter(you can check the official docs).
+
+
+main.tf
+provider "aws" {
+ region = "us-east-1"
+}
+
+variable "instance_name"{
+ type    = string
+ default = "veriable_try"
+}
+
+variable "instance_ami"{
+ type    = string
+ default = "ami-084568db4383264d4"
+}
+
+variable "instance_type"{
+ type    = string
+ default = "t2.micro"
+}
+
+variable "instance_subnet"{
+ type    = string
+ default = "subnet-0d4071f3fc1caa2d8"
+}
+
+variable "instance_key"{
+ type    = string
+ default = "ubuntu-ppk-key"
+}
+
+resource "aws_instance" "example" {
+ tags = {
+  Name = var.instance_name
+ }
+ ami           = var.instance_ami
+ instance_type = var.instance_type
+ subnet_id     = var.instance_subnet
+ key_name      = var.instance_key
+}
