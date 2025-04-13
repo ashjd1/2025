@@ -10,14 +10,17 @@ then run commands
 
 main.tf
 provider "aws" {
- region = "us-east-1"  # Set your desired AWS region
+ region = "us-east-1"                     # Set your desired AWS region
 }
 
 resource "aws_instance" "example" {       # example is name if that instance, it will not reflect on aws
- ami           = "ami-084568db4383264d4"  # beacuse it is only to understand to terraform only
+ ami           = "ami-084568db4383264d4"  # beacuse it is only to understand by terraform only
  instance_type = "t2.micro"
- subnet_id = "subnet-0d4071f3fc1caa2d8"
- key_name = "ubuntu-ppk-key"
+ subnet_id     = "subnet-0d4071f3fc1caa2d8"
+ key_name      = "ubuntu-ppk-key"
+ tags = {
+  Name         = "AshuOnVSCode"           # this name will reflect on AWS UI
+ }
 }
 
  
@@ -29,3 +32,4 @@ terraform apply
 terraform apply -auto-approve
 
 terraform destory
+terraform destory -auto-approve

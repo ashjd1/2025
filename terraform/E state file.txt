@@ -1,0 +1,11 @@
+terrafoem.tfstate file 
+
+to see details from state file 
+"terraform show" command it there
+
+state file have all the details related to your terraform project like resource, provider and all
+if make saome changes in project and apply again, then the instance will be modified
+
+and if you delete the statefile and apply again, it will create another instance or resource
+
+that why state file is required.
