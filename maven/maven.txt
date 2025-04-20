@@ -1,0 +1,168 @@
+maven (mvn)
+
+pom.xml 
+Project object model (.xml)
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>my-app</artifactId>                         #you can consider it as project name
+    <version>1.0-SNAPSHOT</version>
+</project>
+
+
+maven repos 
+
+three types of repos 
+	central                                                # https://repo.maven.apache.org/maven2/
+	local
+	remote 												   # mostely used by the organization, store in cloud.  
+	
+	
+commands 
+
+mvn archetype:generate
+
+			this command will list down all the repos related to the archtype, then need to chose which repo you want to continue with.
+			then it will ask all the details like, GroupId, ArtifactId and all, you need to provide all detilas to run command proprlly.
+			archetype is a maven plugine in central repo, is it being used to create the new projects 
+
+mvn archetype:generate \
+  -DgroupId=com.AshJd \
+  -DartifactId=Ashu \                                    # this will be your name of dir in project
+  -DarchetypeArtifactId=maven-archetype-quickstart 
+  
+			this command with do the as same job as prious command, you just dont need to give input in the mid of command 
+			it is provided with command
+
+
+
+
+Command         | What it does
+mvn clean       | Deletes target/ folder (cleans old builds)
+mvn compile     | Compiles the source code
+mvn test        | Runs unit tests
+mvn package     | Packages into a .jar or .war
+mvn install     | Installs the artifact into local repo (~/.m2)
+mvn deploy      | Pushes it to remote repository
+
+
+
+
+
+need to revisite this consept, belwo project is not complete
+
+I have create the multi module project 
+1st java project is to print num from 1 to 100 and another java project print the prime numbers, in single mvn project 
+
+for that you will need to creta parant pom.xml file which has very standerd format, you can you it multiple time.
+
+parent pom.xml
+
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.AshJd</groupId>
+    <artifactId>Java-Num-Proj</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>number-generator</module>
+        <module>prime-filter</module>
+    </modules>
+
+</project>
+
+
+
+now create the project to print numbers
+
+mvn archetype:generate -DgroupId=com.AshJd.number \
+                       -DartifactId=number-generator \
+                       -DarchetypeArtifactId=maven-archetype-quickstart \
+                       -DinteractiveMode=false
+
+
+project for prive number
+
+mvn archetype:generate -DgroupId=com.AshJd.prime \
+                       -DartifactId=prime-filter \
+                       -DarchetypeArtifactId=maven-archetype-quickstart \
+                       -DinteractiveMode=false
+
+
+now you will need to chnage the pom.xml from both the prjoct and map it to parent pom.xml
+add parent senction in bothe the pom.xml file.
+
+<parent>
+    <groupId>com.AshJd</groupId>
+    <artifactId>Java-Num-Proj</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</parent>
+
+
+<dependencies>
+    <dependency>
+        <groupId>com.AshJd.number</groupId>
+        <artifactId>number-generator</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
+</dependencies>
+
+
+java code to print the numbers 
+
+	package com.AshJd.number;
+
+	import java.util.ArrayList;
+	import java.util.List;
+
+	public class App {
+		public static List<Integer> generateNumbers() {
+			List<Integer> numbers = new ArrayList<>();
+			for (int i = 0; i <= 100; i++) {
+				numbers.add(i);
+			}
+			return numbers;
+		}
+	}
+
+
+package package com.AshJd.prime;
+
+import com.AshJd.number.App;
+
+import java.util.List;
+
+public class AppPrime {
+    public static void main(String[] args) {
+        List<Integer> numbers = App.generateNumbers();
+        System.out.println("Prime Numbers from 0 to 100:");
+
+        for (int num : numbers) {
+            if (isPrime(num)) {
+                System.out.print(num + " ");
+            }
+        }
+        System.out.println();
+    }
+
+    public static boolean isPrime(int number) {
+        if (number <= 1) return false;
+        if (number == 2) return true;
+        for (int i = 2; i <= Math.sqrt(number); i++) {
+            if (number % i == 0) return false;
+        }
+        return true;
+    }
+}

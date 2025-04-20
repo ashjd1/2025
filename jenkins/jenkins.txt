@@ -1,0 +1,33 @@
+jenkins
+
+
+
+pipeline {
+    agent {
+        docker {image 'ubuntu:18.04'}
+    }
+    stages {
+        stage('test') {
+            steps{
+                sh 'ls -la'
+            }
+        }
+        stage('cd-command') {
+            steps{
+                sh 'cd /'
+            }
+        }
+        stage('mkdir-command') {
+            steps{
+                sh 'mkdir ashu'
+            }
+        }
+        stage('rm-rf-command') {
+            steps{
+                sh 'rm -rf ashu*'
+            }
+        }
+
+
+    }
+}
