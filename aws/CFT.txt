@@ -1,18 +1,22 @@
 CFT (cloud formation template)
 
 
-terraform is example of CFT (terraform can you used on cloud platform, but CFT is only limited to aws)
+terraform is example of CFT (terraform can you used on any cloud platform, but CFT is only limited to aws)
 
 CLI is for quick action, instance output just like (ls for any resourese).
 CFT is a template, template written to do repetative task, like creating set of S3 bucket or EC2 instance, like that.
 
-check DFT yaml here
+check CFT yaml here
 https://github.com/ashjd1/2025/blob/main/aws/CFT-s3-bucket.yaml
 
-There are multiple ways to create the template like check the documention from AWS and write your own yaml and pprovide to cloudFormation 
+There are multiple ways to create the template like check the documention from AWS and write your own yaml and provide to cloudFormation 
 or you can create from modues on AWS platform itself.
 
-file is uploaded to 
+Even you can check the GitHub from AWS
+https://github.com/awslabs/aws-cloudformation-template-formatter
+you will get multiple options and examples
+
+uploaded to 
 https://s3.us-east-1.amazonaws.com/cf-templates-qkq70i7fwsi4-us-east-1/2025-04-05T034949.995Zd73-s3-bucket.yaml
 
 s3-bucket.yaml

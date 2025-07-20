@@ -1,0 +1,165 @@
+ansible 
+/mnt/c/Users/ashut/Desktop/keys
+
+control node
+	from where all the other nodes are controlled 
+
+manage node
+	these are the nodes, which are managed by the control node
+	
+	
+to define the node as manage node you need to copy the pem file in that node with below command
+
+ssh-copy-id -f "-o IdentityFile ec2-login.pem" ubuntu@3.87.21.231
+
+once you copy identityfile you can login in with any key or password.
+
+
+to manage all nodes from single node you will need to create the inventory.ini /.yaml file
+
+In this file you need to mention all the ips with username 
+like "ubuntu@3.14.12.191" one by one
+then ansible knows that all those are the nodes need to be managed.
+
+you can give the path if inventory file is not present in same location as command or you can keep 
+file at location "/etc/ansible/host" (host is file not folder) then ansible automatecly will pick the inventory files details 
+
+
+
+command to ansible 
+we use ad hoc commands for ansible 
+you can check the doc here (https://docs.ansible.com/ansible/latest/command_guide/intro_adhoc.html)
+
+$ansible -i <path/to/inventory.ini> -m <module> -a <argument>
+ex :-
+
+$ansible -i ./inventory.ini -m shell -a "ls -la /etc/" all
+
+-m is module we are running shell command (ls -la /etc/) so its a shell
+-a is argument, this is command which we need to run on server
+all is which server you want to run from inventory file, so all server.
+
+
+
+ansibleplaybook.yaml
+
+example as below
+
+
+---
+- hosts: all
+  become: true                          				--> this means as do all tasks as root user 
+  tasks:
+    - name: Install apache httpd
+      ansible.builtin.apt:
+        name: apache2
+        state: present              				    --> present means install absent means uninstall
+        update_cache: yes
+    - name: Copy file with owner and permissions
+      ansible.builtin.copy:
+        src: index.html
+        dest: /var/www/html
+        owner: root
+        group: root
+        mode: '0644'
+		
+		
+		
+example which I tried 
+
+$ ansibleplaybook.yaml
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install python
+      ansible.builtin.apt:
+        name: python3
+        state: present
+        update_cache: yes
+    - name: check python version
+	  shell: python3 --version
+	  
+	  
+
+$ansible-galaxy role init ashu     ---> this command will create the rola folder named as "ashu"
+in that dir multiple folders will be there with there own main.html
+
+$ ansible-galaxy role init ashu
+- Role ashu was created successfully
+
+$ ls
+ansibleplaybook.yaml  ashu  ec2-login.pem  inventory.ini
+
+$ tree ashu/
+ashu/
+├── README.md
+├── defaults
+│    └── main.yml
+├── files
+├── handlers
+│    └── main.yml
+├── meta
+│    └── main.yml
+├── tasks
+│    └── main.yml
+├── templates
+├── tests
+│    ├── inventory
+│    └── test.yml
+└── vars
+    └── main.yml
+	
+$ cat ansibleplaybook.yaml
+---
+- hosts: all
+  become: true
+  roles:								-- we moved the task in task/main.yaml file in ashu role folder
+    - ashu								-- and just mentioned the name of role in which role we have moved the task
+	
+$ cat ashu/tasks/main.yml
+---
+# tasks file for ashu
+- name: Install python
+  ansible.builtin.apt:
+    name: python3
+    state: present
+    update_cache: yes
+- name: check python version
+  shell: python3 --version
+  
+  
+  
+  
+ ansible-vault                         -- this is used to store the secreats
+ 
+$ ansible-vault create ashu.txt 
+this command will create the ashu.txt file in vim mode.
+you can write anythin in that file and once you edit save and close that file,
+then that file will be encripted, you can read that file
+
+
+$ ansible-vault create ashu.txt 
+New Vault password:                    -- while creating the file it asks to set password and you need to remember that pass
+Confirm New Vault password: 
+
+$ root@ashu-VirtualBox:/home/ashu/Desktop# cat ashu.txt 
+$ANSIBLE_VAULT;1.1;AES256
+62633161346261393430323033623333376534643732383233333366363165396230623666653633
+6235633239353636663163353462353263656336353337360a386631386465656535616561643932
+65656135336531663634373962633733613562363930316239356338313164366236626665343438
+3936313839396263640a613836643762643134393863323335303863363165366463613337383934
+6263
+
+$ root@ashu-VirtualBox:/home/ashu/Desktop# ansible-vault view ashu.txt 
+Vault password:                     -- while decrypting that file, it asks for password 
+ashu is there                       -- this is file contaient
+
+
+1. Create a password for vault
+openssl rand -base64 2048 > vault.pass
+
+2. Add your AWS credentials using the below vault command
+ansible-vault create group_vars/all/pass.yml --vault-password-file vault.pass 		-- similar command with pass file
+
+

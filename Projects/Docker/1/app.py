@@ -1,0 +1,1 @@
+print("hello there how are you\nhello from docker project")
