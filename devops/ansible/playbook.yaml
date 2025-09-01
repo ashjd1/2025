@@ -1,0 +1,6 @@
+---
+- name: Apply myrole to all hosts
+  hosts: all
+  become: true
+  roles:
+    - ashu-try

@@ -1,0 +1,33 @@
+---
+- name: Hello There
+  hosts: all
+  become: true
+  tasks:
+    - name: update
+      update_cache: yes
+    - name: install wget
+      apt: 
+        name: wget
+        state: present
+    - name: install tar
+      apt:
+        name: tar
+        state: present
+    - name: Download dotnet
+      ansible.builtin.command:
+        cmd: wget https://github.com/IBM/dotnet-s390x/releases/download/v10.0.100-preview.6.25302.104/dotnet-sdk-10.0.100-preview.6.25302.104-linux-ppc64le.tar.gz
+    - name: nginx install
+      apt:
+        name: nginx
+        state: present
+    - name: start nginx
+      service:
+        name: nginx
+        state: started
+    - name: version of nginx
+      ansible.builtin.command:
+        cmd: nginx -version
+      register: versionNginx
+    - name: show version
+      ansible.builtin.debug:
+        msg: "Nginx verison has {{ versionNginx }} version"

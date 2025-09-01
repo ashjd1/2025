@@ -1,0 +1,5 @@
+ashu_ami = "ami-020cba7c55df1f615"
+ashu_name = "project-devops"
+ashu_type = "t2.micro"
+ashu_key = "pem-file"
+ashu_subnet = "subnet-0caafe85ca0005d91"

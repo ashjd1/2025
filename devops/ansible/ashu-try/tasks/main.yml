@@ -1,0 +1,20 @@
+---
+- name: Update apt cache (Debian/Ubuntu)
+  apt:
+    update_cache: yes
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+- name: Ensure Nginx is started and enabled
+  service:
+    name: nginx
+    state: started
+    enabled: true
+- name: check version
+  ansible.builtin.command:
+    cmd: nginx -version
+  register: nginxVersion
+- name: Show Nginx version output
+  ansible.builtin.debug:
+    msg: "Nginx version output: {{ nginxVersion }}"
