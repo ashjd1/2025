@@ -1,20 +1,89 @@
-pipeline:
-  agent:
-    docker:
-      image: ubuntu:22.04
-  stages:
-    - stage: clone repo 
-      steps:
-        - sh: git clone https://github.com/ashjd1/2025 && cd 2025/devops/project/terraform
-        
-    - stage: Terraform Init
-      steps:
-        - sh: terraform init
+pipeline {
+    agent any
 
-    - stage: Terraform Plan
-      steps:
-        - sh: terraform plan -auto-approve
+    environment {
+        REPO_URL = 'https://github.com/ashjd1/2025.git'
+        REPO_DIR = '2025'
+        PROJECT_DIR = "${WORKSPACE}/2025/devops/project"
+        PEM_FILE = "${WORKSPACE}/2025/devops/on-laptop-pem-key.pem"
+    }
 
-    - stage: Terraform Apply
-      steps:
-        - sh: terraform apply -auto-approve
+    stages {
+        stage('Clone Repository') {
+            steps {
+                echo '📥 Cloning GitHub Repository...'
+                sh 'rm -rf 2025' // Clean up old copy if it exists
+                sh 'git clone https://github.com/ashjd1/2025.git'
+            }
+        }
+
+        // stage('Install Dependencies') {
+        //     steps {
+        //         echo '🔧 Installing Git, Terraform, Ansible...'
+        //         sh '''
+        //         sudo apt-get update -y
+        //         sudo apt-get install -y git unzip curl python3-pip software-properties-common
+        //         sudo apt-add-repository --yes --update ppa:ansible/ansible
+        //         sudo apt-get install -y ansible jq
+
+        //         if ! command -v terraform >/dev/null; then
+        //           curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform.zip
+        //           unzip terraform.zip
+        //           sudo mv terraform /usr/local/bin/
+        //         fi
+        //         '''
+        //     }
+        // }
+
+        stage('Terraform Init & Apply') {
+            steps {
+                dir("${PROJECT_DIR}/terraform") {
+                    echo '🚀 Initializing Terraform...'
+                    sh 'terraform init'
+
+                    echo '🚀 Applying Terraform to create EC2 instance...'
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+
+        stage('Fetch Public IP & Update Inventory') {
+            steps {
+                dir("${PROJECT_DIR}/terraform") {
+                    echo '📥 Getting EC2 public IP from Terraform output...'
+                    script {
+                        def ec2_ip = sh(script: "terraform output -raw ec2_public_ip", returnStdout: true).trim()
+                        echo "EC2 Public IP: ${ec2_ip}"
+
+                        def inventoryPath = "${PROJECT_DIR}/ansible/inventory.ini"
+                        writeFile file: inventoryPath, text: "[ec2]\n${ec2_ip} ansible_user=ubuntu ansible_ssh_private_key_file=${PEM_FILE}"
+                    }
+                }
+            }
+        }
+
+        stage('Wait for EC2 to be Ready') {
+            steps {
+                echo '⏳ Waiting 60 seconds for EC2 to be ready for SSH...'
+                sh 'sleep 60'
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                dir("${PROJECT_DIR}/ansible") {
+                    echo '📦 Running Ansible Playbook...'
+                    sh '''
+                    ansible-playbook -i inventory.ini playbook.yml
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo '✅ Pipeline completed.'
+        }
+    }
+}

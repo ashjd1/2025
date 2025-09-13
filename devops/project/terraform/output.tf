@@ -1,5 +1,5 @@
 output "ashu_id" {
-    value = aws_instance.dev.id
+    value = aws_instance.dev.ip
 }
 
 output "ashu_public_id" {
