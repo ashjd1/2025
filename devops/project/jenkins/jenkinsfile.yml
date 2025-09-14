@@ -50,9 +50,13 @@ pipeline {
         stage('Fetch Public IP & Update Inventory') {
             steps {
                 dir("${PROJECT_DIR}/terraform") {
-                    echo '📥 Getting EC2 public IP from Terraform output...'
+                    echo '📥 Parsing EC2 public IP from terraform.tfstate...'
                     script {
-                        def ec2_ip = sh(script: "terraform output -raw ec2_public_ip", returnStdout: true).trim()
+                        def ec2_ip = sh(
+                            script: "jq -r '.resources[] | select(.type==\"aws_instance\") | .instances[0].attributes.public_ip' terraform.tfstate",
+                            returnStdout: true
+                        ).trim()
+
                         echo "EC2 Public IP: ${ec2_ip}"
 
                         def inventoryPath = "${PROJECT_DIR}/ansible/inventory.ini"

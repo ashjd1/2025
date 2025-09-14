@@ -1,0 +1,4 @@
+apt update && apt upgrade -y && apt install git openjdk-17-jdk unzip curl python3-pip software-properties-common && apt-add-repository --yes --update ppa:ansible/ansible && apt-get install -y ansible jq && curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform.zip && unzip terraform.zip && mv terraform /usr/local/bin/
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc   https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key && echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]"   https://pkg.jenkins.io/debian-stable binary/ | sudo tee   /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update && sudo apt-get install jenkins -y
+sudo systemctl enable jenkins && sudo systemctl start jenkins && sudo systemctl status jenkins && sudo systemctl stop jenkins
