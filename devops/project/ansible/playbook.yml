@@ -3,15 +3,15 @@
   hosts: all
   become: true
   tasks:
-    - name: update
+    - name: update-vm
       update_cache: yes
     - name: install wget
       apt: 
-        name: wget
+        name: wget-vm
         state: present
     - name: install tar
       apt:
-        name: tar
+        name: tar-vm
         state: present
     - name: Download dotnet
       ansible.builtin.command:
