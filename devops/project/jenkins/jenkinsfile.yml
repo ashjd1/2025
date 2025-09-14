@@ -68,13 +68,6 @@ pipeline {
             }
         }
 
-        stage('Wait for EC2 to be Ready') {
-            steps {
-                echo '⏳ Waiting 60 seconds for EC2 to be ready for SSH...'
-                sh 'sleep 60'
-            }
-        }
-
         stage('Run Ansible Playbook') {
             steps {
                 dir("${PROJECT_DIR}/ansible") {
