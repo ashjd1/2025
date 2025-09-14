@@ -9,7 +9,4 @@ resource "aws_instance" "dev" {
   # 👇 Attach existing SG
   vpc_security_group_ids = ["sg-0f420010e39e12c23"]
 
-  tags = {
-    Name = var.ashu_name
-  }
 }
