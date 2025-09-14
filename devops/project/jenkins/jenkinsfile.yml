@@ -50,15 +50,17 @@ pipeline {
         stage('Fetch Public IP & Update Inventory') {
             steps {
                 dir("${PROJECT_DIR}/terraform") {
-                    echo '📥 Parsing EC2 public IP from terraform.tfstate...'
+                    echo '📥 Extracting EC2 public IP using grep...'
                     script {
+                        // Extract the public IP using grep and sed
                         def ec2_ip = sh(
-                            script: "jq -r '.resources[] | select(.type==\"aws_instance\") | .instances[0].attributes.public_ip' terraform.tfstate",
+                            script: "grep -rni '\\\"public_ip\\\":' . | sed -E 's/.*\\\"public_ip\\\": \\\"([0-9.]+)\\\".*/\\1/'",
                             returnStdout: true
                         ).trim()
 
                         echo "EC2 Public IP: ${ec2_ip}"
 
+                        // Write to inventory.ini
                         def inventoryPath = "${PROJECT_DIR}/ansible/inventory.ini"
                         writeFile file: inventoryPath, text: "[ec2]\n${ec2_ip} ansible_user=ubuntu ansible_ssh_private_key_file=${PEM_FILE}"
                     }
