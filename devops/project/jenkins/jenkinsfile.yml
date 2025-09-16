@@ -5,7 +5,7 @@ pipeline {
         REPO_URL = 'https://github.com/ashjd1/2025.git'
         REPO_DIR = '2025'
         PROJECT_DIR = "${WORKSPACE}/2025/devops/project"
-        PEM_FILE = "${WORKSPACE}/2025/devops/on-laptop-pem-key.pem"
+        PEM_FILE = "${WORKSPACE}/2025/devops/pem-file.pem"
     }
 
     stages {
@@ -62,8 +62,8 @@ pipeline {
 
                         // Write to inventory.ini
                         def inventoryPath = "${PROJECT_DIR}/ansible/inventory.ini"
-                        // writeFile file: inventoryPath, text: "[ec2]\n${ec2_ip} ansible_user=ubuntu ansible_ssh_private_key_file=${PEM_FILE}"
-                        writeFile file: inventoryPath, text: "ubuntu@${ec2_ip}"
+                        writeFile file: inventoryPath, text: "[ec2]\n${ec2_ip} ansible_user=ubuntu ansible_ssh_private_key_file=${PEM_FILE}"
+                        // writeFile file: inventoryPath, text: "ubuntu@${ec2_ip}"
                     }
                 }
             }
@@ -81,6 +81,8 @@ pipeline {
                 dir("${PROJECT_DIR}/ansible") {
                     echo '📦 Running Ansible Playbook...'
                     sh '''
+                    ssh-keygen -t rsa -b 4096 -C "ansible-node-jenkins" -f ~/.ssh/id_rsa -N ""
+                    chmod 400 "${WORKSPACE}/2025/devops/pem-file.pem"
                     ansible-playbook -i inventory.ini playbook.yml
                     '''
                 }
