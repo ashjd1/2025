@@ -1,33 +1,42 @@
-ansible 
+ansible
 /mnt/c/Users/ashut/Desktop/keys
 
-control node
-	from where all the other nodes are controlled 
+control node:
+  from where all the other nodes are controlled
 
-manage node
-	these are the nodes, which are managed by the control node
-	
-	
+manage node:
+  these are the nodes, which are managed by the control node
+
+
 to define the node as manage node you need to copy the pem file in that node with below command
 
-ssh-copy-id -f "-o IdentityFile ec2-login.pem" ubuntu@3.87.21.231
+$ ssh-copy-id -f "-o IdentityFile ec2-login.pem" ubuntu@3.87.21.231
+Once you copy identityfile you can login with any key or password.
 
-once you copy identityfile you can login in with any key or password.
+if you see error as "/usr/bin/ssh-copy-id: ERROR: No identities found"
+that means you will need to generate the rsa keys, command as below to generate keys:
 
+$ ssh-keygen -t rsa -b 4096 -C "ansible-node"
+
+Then you will be able to copy the key in VM.
+If you get permission issue with key, like as permission are too open then just give 400 permission to pen file.
+Then most likely all error will resolve, and you can copy the key, you can verify with below command by loging to that machine:
+
+$ ssh -i pem-file-mumbai.pem ubuntu@65.2.167.255
 
 to manage all nodes from single node you will need to create the inventory.ini /.yaml file
 
-In this file you need to mention all the ips with username 
+In this file you need to mention all the ips with username
 like "ubuntu@3.14.12.191" one by one
-then ansible knows that all those are the nodes need to be managed.
+then ansible knows that all those are the nodes that need to be managed.
 
-you can give the path if inventory file is not present in same location as command or you can keep 
-file at location "/etc/ansible/host" (host is file not folder) then ansible automatecly will pick the inventory files details 
+you can give the path of inventory file, if not present in same location you can use path to file as mentioned in command or you can keep
+file at location "/etc/ansible/host" (host is file not folder) then ansible automatically will pick the inventory files details
 
 
 
-command to ansible 
-we use ad hoc commands for ansible 
+command to ansible
+we use ad hoc commands for ansible
 you can check the doc here (https://docs.ansible.com/ansible/latest/command_guide/intro_adhoc.html)
 
 $ansible -i <path/to/inventory.ini> -m <module> -a <argument>
@@ -35,17 +44,12 @@ ex :-
 
 $ansible -i ./inventory.ini -m shell -a "ls -la /etc/" all
 
--m is module we are running shell command (ls -la /etc/) so its a shell
+-m is module we are running shell command (ls -la /etc/) so it's a shell
 -a is argument, this is command which we need to run on server
-all is which server you want to run from inventory file, so all server.
-
+All is which server you want to run from inventory file, so all servers.
 
 
 ansibleplaybook.yaml
-
-example as below
-
-
 ---
 - hosts: all
   become: true                          				--> this means as do all tasks as root user 
@@ -79,37 +83,37 @@ $ ansibleplaybook.yaml
         update_cache: yes
     - name: check python version
 	  shell: python3 --version
-	  
-	  
 
-$ansible-galaxy role init ashu     ---> this command will create the rola folder named as "ashu"
-in that dir multiple folders will be there with there own main.html
+
+$ansible-galaxy role init ashu               ---> this command will create the role folder named as "ashu"
+in that dir multiple folders will be there with their own main.html
 
 $ ansible-galaxy role init ashu
 - Role ashu was created successfully
 
 $ ls
-ansibleplaybook.yaml  ashu  ec2-login.pem  inventory.ini
+ansibleplaybook.yaml ashu ec2-login.pem inventory.ini
 
 $ tree ashu/
 ashu/
 ├── README.md
 ├── defaults
-│    └── main.yml
+│   └── main.yml
 ├── files
 ├── handlers
-│    └── main.yml
+│   └── main.yml
 ├── meta
-│    └── main.yml
+│   └── main.yml
 ├── tasks
-│    └── main.yml
+│   └── main.yml
 ├── templates
 ├── tests
-│    ├── inventory
-│    └── test.yml
+│   ├── inventory
+│   └── test.yml
 └── vars
     └── main.yml
-	
+
+
 $ cat ansibleplaybook.yaml
 ---
 - hosts: all
@@ -128,22 +132,19 @@ $ cat ashu/tasks/main.yml
 - name: check python version
   shell: python3 --version
   
-  
-  
-  
- ansible-vault                         -- this is used to store the secreats
- 
-$ ansible-vault create ashu.txt 
-this command will create the ashu.txt file in vim mode.
-you can write anythin in that file and once you edit save and close that file,
-then that file will be encripted, you can read that file
+ansible-vault               -- this is used to store the secrets
+
+$ ansible-vault create ashu.txt
+This command will create the ashu.txt file in vim mode.
+you can write anything in that file and once you edit save and close that file,
+then that file will be encrypted, you can read that file
 
 
-$ ansible-vault create ashu.txt 
+$ ansible-vault create ashu.txt
 New Vault password:                    -- while creating the file it asks to set password and you need to remember that pass
-Confirm New Vault password: 
+Confirm New Vault password:
 
-$ root@ashu-VirtualBox:/home/ashu/Desktop# cat ashu.txt 
+$ root@ashu-VirtualBox:/home/ashu/Desktop# cat ashu.txt
 $ANSIBLE_VAULT;1.1;AES256
 62633161346261393430323033623333376534643732383233333366363165396230623666653633
 6235633239353636663163353462353263656336353337360a386631386465656535616561643932
@@ -151,15 +152,13 @@ $ANSIBLE_VAULT;1.1;AES256
 3936313839396263640a613836643762643134393863323335303863363165366463613337383934
 6263
 
-$ root@ashu-VirtualBox:/home/ashu/Desktop# ansible-vault view ashu.txt 
-Vault password:                     -- while decrypting that file, it asks for password 
-ashu is there                       -- this is file contaient
+$ root@ashu-VirtualBox:/home/ashu/Desktop# ansible-vault view ashu.txt
+Vault password:                 -- while decrypting that file, it asks for password
+ashu is there                   -- this is file continent
 
 
 1. Create a password for vault
 openssl rand -base64 2048 > vault.pass
 
 2. Add your AWS credentials using the below vault command
-ansible-vault create group_vars/all/pass.yml --vault-password-file vault.pass 		-- similar command with pass file
-
-
+ansible-vault create group_vars/all/pass.yml --vault-password-file vault.pass -- similar command with pass file
