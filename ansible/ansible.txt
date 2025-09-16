@@ -16,6 +16,7 @@ Once you copy identityfile you can login with any key or password.
 if you see error as "/usr/bin/ssh-copy-id: ERROR: No identities found"
 that means you will need to generate the rsa keys, command as below to generate keys:
 
+$ ls -la /root/.ssh/
 $ ssh-keygen -t rsa -b 4096 -C "ansible-node"
 
 Then you will be able to copy the key in VM.
@@ -133,7 +134,7 @@ $ cat ashu/tasks/main.yml
   shell: python3 --version
   
 
-to un playbook files use below command
+to run playbook files use below command
 $ ansible-playbook -i inventory.ini playbook.yml
 
 ansible-vault               -- this is used to store the secrets
