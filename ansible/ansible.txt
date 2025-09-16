@@ -39,7 +39,7 @@ command to ansible
 we use ad hoc commands for ansible
 you can check the doc here (https://docs.ansible.com/ansible/latest/command_guide/intro_adhoc.html)
 
-$ansible -i <path/to/inventory.ini> -m <module> -a <argument>
+$ ansible -i <path/to/inventory.ini> -m <module> -a <argument>
 ex :-
 
 $ansible -i ./inventory.ini -m shell -a "ls -la /etc/" all
@@ -132,6 +132,10 @@ $ cat ashu/tasks/main.yml
 - name: check python version
   shell: python3 --version
   
+
+to un playbook files use below command
+$ ansible-playbook -i inventory.ini playbook.yml
+
 ansible-vault               -- this is used to store the secrets
 
 $ ansible-vault create ashu.txt

@@ -62,7 +62,8 @@ pipeline {
 
                         // Write to inventory.ini
                         def inventoryPath = "${PROJECT_DIR}/ansible/inventory.ini"
-                        writeFile file: inventoryPath, text: "[ec2]\n${ec2_ip} ansible_user=ubuntu ansible_ssh_private_key_file=${PEM_FILE}"
+                        // writeFile file: inventoryPath, text: "[ec2]\n${ec2_ip} ansible_user=ubuntu ansible_ssh_private_key_file=${PEM_FILE}"
+                        writeFile file: inventoryPath, text: "ubuntu@${ec2_ip}"
                     }
                 }
             }
