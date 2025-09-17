@@ -71,7 +71,7 @@ pipeline {
 
         stage('Wait for EC2 to be Ready') {
             steps {
-                echo '⏳ Waiting 60 seconds for EC2 to be ready for SSH...'
+                echo '⏳ Waiting 120 seconds for EC2 to be ready for SSH...'
                 sh 'sleep 120'
             }
         }
