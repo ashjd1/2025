@@ -72,7 +72,7 @@ pipeline {
         stage('Wait for EC2 to be Ready') {
             steps {
                 echo '⏳ Waiting 60 seconds for EC2 to be ready for SSH...'
-                sh 'sleep 150'
+                sh 'sleep 120'
             }
         }
 
@@ -83,6 +83,7 @@ pipeline {
                     sh '''
                     ssh-keygen -t rsa -b 4096 -C "ansible-node-jenkins" -f ~/.ssh/id_rsa -N ""
                     chmod 400 "${WORKSPACE}/2025/devops/pem-file-mumbai.pem"
+                    export ANSIBLE_HOST_KEY_CHECKING=False
                     ansible-playbook -i inventory.ini playbook.yml
                     '''
                 }
