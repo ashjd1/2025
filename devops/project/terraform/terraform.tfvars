@@ -1,5 +1,5 @@
 ashu_ami = "ami-02d26659fd82cf299"
 ashu_name = "project-devops"
 ashu_type = "t2.micro"
-ashu_key = "pem-file"
+ashu_key = "pem-file-mumbai"
 ashu_subnet = "subnet-09fd2d4c0642a96d9"

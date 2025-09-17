@@ -4,3 +4,6 @@ sudo apt-get update && sudo apt-get install jenkins -y
 snap install aws-cli --classic
 aws configure
 sudo systemctl enable jenkins && sudo systemctl start jenkins && sudo systemctl status jenkins #&& sudo systemctl stop jenkins
+
+mkdir /root/ashutosh && cd /root/ashutosh
+git clone https://github.com/ashjd1/2025.git && cd 2025

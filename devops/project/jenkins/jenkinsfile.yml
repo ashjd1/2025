@@ -5,7 +5,7 @@ pipeline {
         REPO_URL = 'https://github.com/ashjd1/2025.git'
         REPO_DIR = '2025'
         PROJECT_DIR = "${WORKSPACE}/2025/devops/project"
-        PEM_FILE = "${WORKSPACE}/2025/devops/pem-file.pem"
+        PEM_FILE = "${WORKSPACE}/2025/devops/pem-file-mumbai.pem"
     }
 
     stages {
@@ -82,7 +82,7 @@ pipeline {
                     echo '📦 Running Ansible Playbook...'
                     sh '''
                     ssh-keygen -t rsa -b 4096 -C "ansible-node-jenkins" -f ~/.ssh/id_rsa -N ""
-                    chmod 400 "${WORKSPACE}/2025/devops/pem-file.pem"
+                    chmod 400 "${WORKSPACE}/2025/devops/pem-file-mumbai.pem"
                     ansible-playbook -i inventory.ini playbook.yml
                     '''
                 }
