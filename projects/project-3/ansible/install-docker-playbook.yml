@@ -1,0 +1,61 @@
+---
+- name: Install docker
+  host: all
+  become: true
+  tasks:
+    - name: Update the VM
+      apt:
+        update_cache: yes
+    
+    - name: install dependancies
+      apt: 
+        name: 
+          - ca-certificates
+          - curl 
+        state: present 
+    
+    - name: Create Directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "755"
+        owner: root
+        group: root
+    
+    - name: Curl the Key
+      get_curl:
+        curl: https://download.docker.com/linux/ubuntu/gpg 
+        dest: /etc/apt/keyrings/docker.asc
+        moed: '444'
+
+    - name: Docker repo
+      vars:                           # we need to sue vars because we cant directly run the shell command (line arch command or print os release) in anbible 
+        ubuntu_codename: "{{ ansible_distribution_release }}"
+        architecture: "{{ ansible_architecture }}"
+      lineinfile:
+        path: /etc/apt/sources.list.d/docker.list
+        line: "deb [arch={{ architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ubuntu_codename }} stable"
+        create: yes
+        # Original commad as brlow: -
+        #   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+        #   $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+        #   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    - name: Command is (apt update)
+      apt:
+        update_cache: yes
+
+    - name: install docker dependancied
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: start the docker
+      systemd:
+        name: docker 
+        state: started

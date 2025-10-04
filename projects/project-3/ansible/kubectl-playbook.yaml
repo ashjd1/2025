@@ -1,0 +1,81 @@
+---
+- name: Install kubernetes on ubuntu 
+  host: all
+  become: true
+  tasks:
+    - name: get latest version
+      uri:                                            # uri is ansibles curl, give the url it will return the html context. 
+        url: https://dl.k8s.io/release/stable.txt
+        return_context: yes
+      register: kubectl_version
+    
+    - name: Download the version
+      get_curl:
+        curl: https://dl.k8s.io/release/{{kubectl_version | trim }}/bin/linux/amd64/kubectl # trim just removes the white sapce and new lines.
+    
+    - name: create directory
+      copy:
+        src: ./kubectl 
+        dest: /usr/local/bin/kubectl
+        mode: '755'
+        owner: root
+        group: root
+        remote_src: yes # in default behivour it "no" and ansible consider it as to upload from control node to remote mode.
+                        # so with "yes" ansible conside as file is in remote node itself.
+
+# below is different methos to install kubectl 
+
+    - name: update the VM
+      apt:
+        update_cache: yes
+
+    - name: install dependencise
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    # - name: download relese Key
+    #   get_curl:
+    #     curl: https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key
+
+    - name: download relese Key
+      shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:                 # args wil check if "kubernetes-apt-keyring.gpg" exeists or not in path, then run, if exeist then dont run.
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: change permission
+      file: 
+        path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        mode: '644'
+    
+    # - name: set repository
+    #   lineinfile:
+    #     path: /etc/apt/sources.list.d/kubernetes.list
+    #     line: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /'
+    #     create: yes
+    #     mode: '644'
+    #     owner: root
+    #     group: root
+
+    # we can right above as below as well
+
+    - name: set repository
+      copy:
+        content: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /'
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: update vm
+      apt:
+        update_cache: yes
+
+    - name: install k8s  
+      apt:  
+        name: kubectl
+        state: present
