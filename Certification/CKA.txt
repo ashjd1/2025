@@ -294,3 +294,90 @@ Deployment: -
 			name: nginx
 			resources: {}
 	status: {}
+	
+Services: -
+	NodePort: -
+		as it explained in name, like node and port, node cand be accessed by it port, so NodePort.
+		
+		so NodePort servies gives you the port to access the pod, 
+		port on pod is called as "TargetPort", 
+		port on service is called as just "port".
+		port on node called as "nodeport". 
+		Range of nodeport is from 30000 to 32767.
+		To connect the any service to any pod, we need to use the "selector" in service and use exact labes in service from pod which
+		you want to include in the service. 
+		
+	ClusterIP: -
+		in production environment, there are nultiple containers and pods are running, so one go down and other come up
+		that that pod should be get connect in service, so in clusted IP create single IP for multiple pods,
+		like in backend you have multiple redis cervice running, then single port will be there to connect any one of redis pod.
+		
+		
+	LoadBalancer: -
+		is as name suggest, balance the load from services. 
+		NOTE: - it is only availabe in limited cloud, if loadbalancer is not availabe there then it will be treate as NodePort.
+		cloud platform should have its own load balancer, like GCP, AWS, AZURE have.
+		
+
+	$ cat service.yaml
+	apiVersion: v1
+	kind: Service
+	metadata:
+	  name: ashu-nginx-service
+	spec:
+	  type: NodePort/ClusterIP/LoadBalancer
+	  selector:
+		app: ashu-app        # with this selector service get idea, which pod to keep in contact and which one is to ignore.
+	  ports:
+		- port: 8080         # Service port
+		  targetPort: 80     # Container port
+		  nodePort: 30008    # Node port (optional & must be in range 30000–32767)
+
+
+NameSpace: -
+	
+	in production if you want to create multiple project then Creating namespace will be helpful.
+	Also you can isolate your work with multiple Namespace.
+	you are creating the pod and want to specifi  the namespace then in metadata section you can specify the metadata:namespace: <name>
+	At the beggning you will be in the default namespace, if you want to switch to other namespace use bewlo command:
+	"$ kubectl config set-context $(kubectl config current-context) --namespace=ashu"
+	To get all resources from all namespaces you can use "--all-namespaces" flag.
+	"$ kubectl get pods --all-namespaces"
+		
+	$ cat namespace.yaml
+	apiVersion: v1
+	kind: Namespace
+	metadata:
+	  name: ashu-namespace
+
+	$ kubectl create -f namespace.yaml
+	namespace/ashu-namespace created
+
+	$ kubectl get namespace
+	NAME              STATUS   AGE
+	ashu-namespace    Active   6s
+
+	$ kubectl create namespace ashu
+	namespace/ashu created
+
+	$ kubectl get namespace
+	NAME              STATUS   AGE
+	ashu              Active   8s
+	
+	
+	ResourceQuota: -
+		you can create ResourceQuota for each namespace, so that namespace be limited to use it hardware.
+		
+		apiVersion: v1
+		kind: ResourceQuota
+		metadata:
+		  name: ashu-resource-quota
+		  namespace: ashu
+		spec:
+		  hard:
+			pods: "10"
+			requests.cpu: "4"
+			requests.memory: "5Gi"
+			limits.cpu: "10"
+			limits.memory: "10Gi"
+
