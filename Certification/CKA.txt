@@ -1,8 +1,8 @@
-CKA
+CKA reference to the cource https://github.com/kodekloudhub/certified-kubernetes-administrator-course
 
 
 kubectl get all
-
+kubectl replace --foce -f pod.yaml -> delete exesting pod and will create new from same file.
 
 master node and worked node
 
@@ -29,6 +29,8 @@ pods
 	in single pod we can have multiple container but not same kind of container, we can have multiple containers of differnt kinds.
 	like you can't run two python container in single pod, but you can run python and nginx cotainers in single pod.
 
+	you will get the yaml file of existing pod in detail.
+	$ kubectl get pods nginx -o yaml 
 
 	you can create pods with commandline without yaml file. and you can create yaml file as well with command file
 	follow the below commands
@@ -87,7 +89,27 @@ pods
 	nginx     1/1     Running   0          7s
 	nginx-2   1/1     Running   0          3m33s
 
-
+	Note: - pod with labels in kubectl run command
+	
+	$ kubectl run redis --image=redis:alpine --labels="tire=db" --dry-run=client -o yaml
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		tire: db
+	  name: redis
+	spec:
+	  containers:
+	  - image: redis:alpine
+		name: redis
+		resources: {}
+	  dnsPolicy: ClusterFirst
+	  restartPolicy: Always
+	status: {}
+	
+	kubectl get pods --selector env=dev -> you will get the pods from evn labels.
+	kubectl get pods --selector env=dev, bu=finance -> label with finance and dev.
 
 Replicaset: -
 	
@@ -296,6 +318,9 @@ Deployment: -
 	status: {}
 	
 Services: -
+	
+	NOTE: - If you done specifi the type of service, it will consider it as ClusterIP, by default.
+	
 	NodePort: -
 		as it explained in name, like node and port, node cand be accessed by it port, so NodePort.
 		
@@ -334,12 +359,142 @@ Services: -
 		  nodePort: 30008    # Node port (optional & must be in range 30000–32767)
 
 
+
+	NOTE: - in below commands nginx pod is already there and we are inclusing that pod in new srvice while creating,
+	So it is easy way to inlcude pod and create the service.
+	
+	$ kubectl expose pod nginx --port=3007 --target-port=80 --name=nginx-service --dry-run=client -o yaml
+
+	apiVersion: v1
+	kind: Service
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx-service
+	spec:
+	  ports:
+	  - port: 3007
+		protocol: TCP
+		targetPort: 80
+	  selector:
+		run: nginx
+	status:
+	  loadBalancer: {}
+	
+	$ kubectl expose pod nginx --port=3007 --target-port=80 --name=nginx-service --dry-run=client --type=nodeport -o yaml
+
+	apiVersion: v1
+	kind: Service
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx-service
+	spec:
+	  ports:
+	  - port: 3007
+		protocol: TCP
+		targetPort: 80
+	  selector:
+		run: nginx
+	  type: nodeport
+	status:
+	  loadBalancer: {}
+  
+  	$ kubectl expose pod nginx --port=3007 --target-port=80 --name=nginx-service --dry-run=client --type=loadbalancer -o yaml
+
+	apiVersion: v1
+	kind: Service
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx-service
+	spec:
+	  ports:
+	  - port: 3007
+		protocol: TCP
+		targetPort: 80
+	  selector:
+		run: nginx
+	  type: loadbalancer
+	status:
+	  loadBalancer: {}
+
+	You can include depoyment aswell. Command as below: -
+	
+	$ kubectl expose deployment nginx-deployment --port=3070 --target-port=81 --name=nginx-deployment  --dry-run=client -o yaml
+	apiVersion: v1
+	kind: Service
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		app: nginx-deployment
+	  name: nginx-deployment
+	spec:
+	  ports:
+	  - port: 3070
+		protocol: TCP
+		targetPort: 81
+	  selector:
+		app: nginx-deployment
+	status:
+	  loadBalancer: {}
+	
+	
+	NodePort service for deployment.
+	
+	$ kubectl expose deployment nginx-deployment --port=3070 --target-port=81 --name=nginx-deployment  --dry-run=client --type nodeport -o yaml
+	apiVersion: v1
+	kind: Service
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		app: nginx-deployment
+	  name: nginx-deployment
+	spec:
+	  ports:
+	  - port: 3070
+		protocol: TCP
+		targetPort: 81
+	  selector:
+		app: nginx-deployment
+	  type: nodeport
+	status:
+	  loadBalancer: {}
+
+
+	There is command to create the servie as you want, command as below: -
+	
+	$ kubectl create service clusterip redis --tcp=6379:6379 --dry-run=client -o yaml
+
+	apiVersion: v1
+	kind: Service
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		app: redis
+	  name: redis
+	spec:
+	  ports:
+	  - name: 6379-6379
+		port: 6379
+		protocol: TCP
+		targetPort: 6379
+	  selector:
+		app: redis
+	  type: ClusterIP
+	status:
+	  loadBalancer: {}
+
+
 NameSpace: -
 	
 	in production if you want to create multiple project then Creating namespace will be helpful.
 	Also you can isolate your work with multiple Namespace.
 	you are creating the pod and want to specifi  the namespace then in metadata section you can specify the metadata:namespace: <name>
-	At the beggning you will be in the default namespace, if you want to switch to other namespace use bewlo command:
+	At the beggning you will be in the default namespace, if you want to switch to other namespace use below command:
 	"$ kubectl config set-context $(kubectl config current-context) --namespace=ashu"
 	To get all resources from all namespaces you can use "--all-namespaces" flag.
 	"$ kubectl get pods --all-namespaces"
@@ -381,3 +536,192 @@ NameSpace: -
 			limits.cpu: "10"
 			limits.memory: "10Gi"
 
+
+
+
+
+Imperative commands in Kubernetes are direct kubectl commands you run in the terminal to create, update, or delete resources immediately—without needing a manifest file.
+Imperative commands are useful for quick, interactive tasks or experimentation.
+ex: - "kubectl run mypod --image=nginx"
+
+
+kubectl apply command: -
+	there are 3 differnt types, like local yaml file conevrted to live object configuration converted to json file.
+	so every time you hit apply command then all three files are get conpared one by one and at the end you will get final result in json file and 
+	you can see changed in you cluster.
+	
+	
+Sheduling: -
+	So sheduller map the pod to node, not oly that all the things like whcich namespace, which node all those things,
+	so If default sheduller is of then pod will be in peding state.
+	
+	so you can manually assigne the pod to node, no need for sheduler, use "nodeName" only in spec:nodeName: <node name>
+	
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: nginx
+	spec:
+	  nodeName: node01
+	  containers:
+		- name: nginx
+		  image: nginx
+
+
+taint and tolaration: -
+	taint is for node and tolaration is for pod.
+	If we set taint (node) and tolaration (pod) it will alwasy place pod in that node or vice varsa.
+	basicelly with taint and tolaration we can adjust the pod and nodes relation.
+	
+	for node:
+	kubectl taint nodes node-name key=value:taint-effect
+	
+	three kind of tolorations are there 1. NoSchedule
+										2. PreferNoSchedule
+										3. NoExecution
+										
+	kubectl taint nodes node01 app=blue:NoSchedule -> for node
+	
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx
+	spec:
+	  containers:
+	  - image: nginx
+		name: nginx
+	  tolerations:
+		- key: "app"							# app
+		  operator: "Equal"					# =
+		  value: "blue"							# blue
+		  effect: "NoSchedule"					# NoSchedule
+		  
+		  
+		NOTE: - if you compare the spec:tolerations to kubectl taint command, it is exactly the same.
+		app, equal, blue, NoSchedule exactly same on command and yaml file.
+		NoSchedule = Do not allow pods to be scheduled on this node unless they have a matching toleration.
+		toleration = app=blue
+		
+		So now only pods with app=blue will get to place on node01
+		
+		command to remove taint from node
+		kubectl taint nodes <node-name> node-role.kubernetes.io/control-plane:NoSchedule-
+		to remoce the taint the command is exactly the same, just add - at the end.
+		I got this "node-role.kubernetes.io/control-plane:NoSchedule" from "kubectl describe node <node name>."
+		you will get one line as taint, just copy that and add - at then end then effect will be removed.
+		
+Node selector and node Affinity : - 
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx
+	spec:
+	  containers:
+	  - image: nginx
+		name: nginx
+	  nodeSelector:			# nodeSelector key pare value comes from node
+		size: Large			# when node is created this labes are given to that node, so that large pod get assign to large node.
+		
+	you can label the node as well with below command: -
+	"$ kubectl label nodes node01 size=Large"
+	
+	Affinity: -
+	
+		requiredDuringSchedulingIgnoreDuringExecution
+		preferredDuringSchedulingIgnoreDuringExecution
+		
+		Syntax for this is nor easy to remember, you can refer k8s documentation.
+		https://kubernetes.io/docs/home/
+		
+	we can use Taint and Tolaration, like label the node and pod.
+	but there is chance that pod might will endup in other node where node is not labeled
+	so to come over this issue we have Affinity, so that exact pod will endup in exact node.
+	
+	
+Resource limite: -
+
+	By default k8s dont have resource limits.
+	so in resource limit we set min and max limits to the pod and container.
+	for CPU: - if pod start using more CPU than limit then k8s will throtel that pod and get back to its limit.
+	for MEMORY: - if pod start using more memory, then pod will be terminited with error out of memory.
+	
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: pod-resources-demo
+	  namespace: pod-resources-example
+	spec:
+	  resources:
+		limits:					# upper limit/ max limit
+		  cpu: "1"
+		  memory: "200Mi"
+		requests:				# lower limit/ min limit
+		  cpu: "1"
+		  memory: "100Mi"
+	  containers:
+	  - name: pod-resources-demo-ctr-1
+		image: nginx
+
+	If you dont set resource on pod then pod can consume all the resource of node and then node not able to host any other pod.
+	If you only set limits and no-request then ks automatecly set no-request as same as limits so limits=no-request, in this case.
+	If you only set request then you will get required limite and max till node get full, but other pod get on that same node and 
+		requested and limited some space then pod 2 will get as requested and pod 1 might will not get enough space only the requested.
+	
+	exactly smae for memory above containt is for CPU.
+	for memory if other pod need to access the memory from same node and it dont have much space, then we need to kill the pod
+	to share the memory, because we cant throtal meomory like cpu, if memory is assigned, then assigned, done.
+	you cant get that memory back, so need to delete the pod.
+	
+	LimitRange: -
+		by default we dont have the resource limit, and if we want to set some default limit to every pod, we can use kind:LimitRange
+	
+		CPU LimitRange: -
+		apiVersion: v1
+		kind: LimitRange
+		metadata:
+		  name: cpu-resource-constraint
+		spec:
+		  limits:
+		  - default: 					# This values are for user, if he forgot to add, then by default used this value
+			  cpu: 500m					# default limits
+			defaultRequest:				# default requests
+			  cpu: 500m
+			max:						# but min and max values are to limit, like if user tried to excced there values k8s will reject the pod.
+			  cpu: "1"					# max and min define the limit range
+			min:
+			  cpu: 100m
+			type: Container
+
+
+		Momery LimitRange: -
+		apiVersion: v1
+		kind: LimitRange
+		metadata:
+		  name: memory-resource-constraint
+		spec:
+		  limits:
+		  - default: 					# This values are for user, if he forgot to add, then by default used this value
+			  memory: 1Gi				# default limits
+			defaultRequest:				# default requests
+			  memory: 1Gi
+			max:						# but min and max values are to limit, like if user tried to excced there values k8s will reject the pod.
+			  memory: 1Gi				# max and min define the limit range
+			min:
+			  memory: 500Mi
+			type: Container
+
+		There is another varation is ResourceQuota, but it is for namespace level object, you can check below.
+
+		| Feature          | LimitRange                        | ResourceQuota                                 |
+		| ---------------- | --------------------------------- | --------------------------------------------- |
+		| Scope            | Per **container/pod**             | Per **namespace**                             |
+		| Enforces limits? | Yes (min, max per pod/container)  | Yes (total across namespace)                  |
+		| Sets defaults?   | Yes (`default`, `defaultRequest`) | No                                            |
+		| Prevents misuse? | Yes (bad container configs)       | Yes (resource overuse in namespace)           |
+		| Example          | Max 1 CPU per container           | Max 10 CPUs total for all pods in a namespace |
