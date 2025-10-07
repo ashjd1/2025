@@ -595,7 +595,7 @@ taint and tolaration: -
 		name: nginx
 	  tolerations:
 		- key: "app"							# app
-		  operator: "Equal"					# =
+		  operator: "Equal"					    # =
 		  value: "blue"							# blue
 		  effect: "NoSchedule"					# NoSchedule
 		  
@@ -725,3 +725,6 @@ Resource limite: -
 		| Sets defaults?   | Yes (`default`, `defaultRequest`) | No                                            |
 		| Prevents misuse? | Yes (bad container configs)       | Yes (resource overuse in namespace)           |
 		| Example          | Max 1 CPU per container           | Max 10 CPUs total for all pods in a namespace |
+
+
+
