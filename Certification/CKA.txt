@@ -726,5 +726,100 @@ Resource limite: -
 		| Prevents misuse? | Yes (bad container configs)       | Yes (resource overuse in namespace)           |
 		| Example          | Max 1 CPU per container           | Max 10 CPUs total for all pods in a namespace |
 
+DaemonSet: -
+	DaemonSet create one pod per node, like if you create deamonset it will create node on all the nodes, no matter how may pods are there.
+	if node get deleted or down then that pod will also destoried.
+	DaemonSet use the node affinity and Default scheduler, land exact pod on exact node.
+	
+	Mostely it is used to nomitoring purpose, requirement is something like monitoring or counting the nodes.
+	
+	there is no directly way to create DaemonSet, you have to rigth yaml file.
+	but there is work around, you can create the Deployment and then make changes accrounding to DaemonSet, 
+	you need to change the kind and replicas only, also you can refer the documentation from k8s docs.
+	
+StaticPod: -
+	If you place the file at /etc/kubernetes/manifest location, k8s will sautomaticelly will create the pod.
+	that pods called as static pod.
+	
+	IF you the static pod on your cluster you can identify it but checing the name of pod.
+	pod will have the name of node at the end of pod name.
+	one more method is there, you can check the yaml file of that pod "kubectl get pod <pod name> -n <name space> -o yaml"
+	then you can check for "owerReference", in kind you will get node, if that pod is static pod.
+	Otherwise it will be something like ReplicaSet or Deployment.
+	
+	you can check the k8s configuration file at /var/lib/kubelet/config.yaml
+	
+	NOTE: - if you want to use "--command" option in kubectl command then always use at the end, even --dry-run shoule be before that command.
+			it is not mandatary to have yaml of static file in /etc/kubernetes/manifest, is its not there then you can check "/var/lib/kubelet/config.yaml"
+			you will get the folder in here. named as "staticPodPath:"
+			And you can ssh to node and go to that node just by ssh <node name or IP>, you will get IP as "kubectl get nodes -o wide."
+			
+
+	Create a static pod named static-busybox that uses the busybox image , run in the default namespace and the command sleep 1000
+	
+	$ kubectl run static-busybox --image=busybox -n default --dry-run=client -o yaml --command -- sleep 1000
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  creationTimestamp: null
+		  labels:
+			run: static-busybox
+		  name: static-busybox
+		  namespace: default
+		spec:
+		  containers:
+		  - command:
+			- sleep
+			- "1000"
+			image: busybox
+			name: static-busybox
+			resources: {}
+		  dnsPolicy: ClusterFirst
+		  restartPolicy: Always
+		status: {}
+		
+PriorityClass: -
+
+	Default prority value is 0.
+	
+	apiVersion: scheduling.k8s.io/v1
+	kind: PriorityClass
+	metadata:
+	  name: high-priority
+	value: 1000000				 				    	# There is range for this vlaue you can google it.
+	globalDefault: true / false          			   	# This value will give high-priority to all the pods created
+	preemptionPolicy: PreemptLowerPriority / Never		# Default is "PreemptLowerPriority", that means it will kill the lower prority and get that place.
+														# and in never, it will wait to get sapce and then place itself according to priority.		
 
 
+	Pod example used with PriorityClass with above PriorityClass
+
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: nginx
+	  labels:
+		env: test
+	spec:
+	  containers:
+	  - name: nginx
+		image: nginx
+	  priorityClassName: high-priority
+
+
+
+kubeschedulerConfiguration: -
+	k8s is highly extensible, you can create your won scheduler.
+	Check if after this course, need to understad properly.
+	
+	when pods any pod get allocatated to node, befor that 4 sorting happens.
+	
+	scheduling queue			# All the nodes are here with scheduler to get bind with node.
+	filtering					# Filter out the pods accroding to its priority, node name, resource requirement.
+	scoring						# then schedular score the node according to pod requirents, only high scoring nodes will be left. like there is 4 nodes with 2CPU, 4CPU, 10CPU and 16CPU and pod need 10CPU then 16CPU node will get high scode and pod will get bind with it.
+	binding						# Pod will get binded with high scoring node.
+	
+	
+
+
+There are some another videos need to be viewd.
