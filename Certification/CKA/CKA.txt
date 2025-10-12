@@ -852,18 +852,79 @@ kubeschedulerConfiguration: -
 	who will lead the scheduling activities. -> check more on google or k8s docs about this.
 	
 	you can use that custom scheduler to schedule your pod, just mention in "spec:schedulerName: my-kube-scheduler"
-	
-	# Check if after this course, need to understad properly.
-	
-	
-	when pods any pod get allocatated to node, befor that 4 sorting happens.
-	
-	scheduling queue			# All the nodes are here with scheduler to get bind with node.
-	filtering					# Filter out the pods accroding to its priority, node name, resource requirement.
-	scoring						# then schedular score the node according to pod requirents, only high scoring nodes will be left. like there is 4 nodes with 2CPU, 4CPU, 10CPU and 16CPU and pod need 10CPU then 16CPU node will get high scode and pod will get bind with it.
-	binding						# Pod will get binded with high scoring node.
+	If scheduler is working properly then pod will be in running state otherwise it will be in pending state.
+	If you want to check which scheduler schedule which pod, you can use "$ kubectl get events -o wide" command
+	you can check the schedulers logs as well, kubectl logs <scheduler-name> -n <name space name>
 	
 	
+Scheduler profile: -	
+	
+	when you try to create pod, pod get allocated to node, befor that 4 sorting happens as below.
+	
+	Scheduling queue			# All the nodes are here with scheduler to get bind with node.
+	Filtering					# Filter out the pods accroding to its priority, resource requirement, taint and tolaration.
+	Scoring						# then schedular score the node according to pod requirents, only high scoring nodes will be left. like there is 4 nodes with 2CPU, 4CPU, 10CPU and 16CPU and pod need 10CPU then 16CPU node will get high score.
+	Binding						# Pod will get binded with high scoring node or will get allocated on that node.
+	
+	I think this video is not that important so skipping it, all related to scheduling queue, in detailed video.
+	https://ibm-learning.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/14295628#overview
 
+Admission Controllers: -
+	
+	kubectl -> apiserver -> resource get created
+	kubectl -> kubelete -> apiserver -> authentation -> autherization -> resources get created
+	
+	you can create role, like develpoer and give him a specific permissions
+	
+	Role:- 
+		apiVersion: rbac.authorization.k8s.io/v1
+		kind: Role
+		metadata:
+		  name: developer
+		rules:
+		- apiGroups: [""] # "" indicates the core API group
+		  resources: ["pods"]
+		  verbs: ["list", "get", "create", "update", "delete"]
+		  resourceNames: ["blue", "red"]
 
-There are some another videos need to be viewd.
+	Now conside deveploer, try to run different command from rules:verbs: then autherization will denied and request will get canceled, we can restrict the access.
+	Even we can restrict access to the specific namespace as well (rules:resourceNames).
+	
+	All this managed auto ApiServer only and wont go beyound that, because you will create resource and roles with kubectl command all those managed by ApiServer.
+	Now consider you want to use speficic docekrhub registory or you dont want to allow container run as root user or dont want to use latest tag on any image,
+	you cant achive this thing with role based restriction as we see above, and this is where "Admission Controllers" comes in play.
+	
+	kubectl -> kubelete -> apiserver -> authentation -> autherization -> Admission Controllers -> resources get created
+	
+	Admission Controllers as better security magers to how we can use the k8s cluster, aprt from simply validation configurations, can do lot more,
+	like change the request itself or perform addational operation before the pod get created.
+	
+	Some examples of admisssion controller which run in k8s as default: - AlwaysPullImage -> as name suggest, EventRateLimit -> allwase monitor the limit and try to manage limits, 
+	NameSpaceExist -> If you try to create resource in namespace which dose not exist, it will reject that request. 
+	
+	NamespaceAutoProvision is not default admisssion controller but you can use it or enable it,
+	it will allow to create namespace if dose not exist.
+	
+	you can check all the default Admission Controller with "$ kube-apiserver -h | grep enable-admission-plugines" command.
+	In hosted or playground environments online, you don’t have direct access to the control plane, so you can’t run kube-apiserver directly, but on actual server you will be able to run that command.
+	So you are on online playground you can you "$ ps -ef | grep kube-apiserver | grep admission-plugins" command to have same result.
+	
+	Now to use the plugine, you will need to edit the kube-apiserver.yaml file.
+	add --enable-admission-plugine=NodeRestriction,NamespaceAutoProvision at spec:containers:command:, now you will be able to create pod in namespace evenif that
+	namespace dose not exeist, it will create for you.
+	
+	IF you want to desable default admission controller, you edit same file and same lication as below,
+	"--disable-admission-plugine=DefaultStoregeClass".
+	
+Validate and mutate admission controller: -
+
+	Validating admission controller is controller which validate things like NamespaceExists Admission controller, it validate if the namespace exists or not.
+	
+	Mutating controllers are those controllers who can modifuy the things, like DefaultStorageClass, if you are creating resource and not mentioned about the 
+	storgae class it will set to DefaultStorageClass, it will mutate the request and add storage class by itself.
+	
+	Some admission controller can do both mutate and validate, mutate will run 1st then validate, like NamespaceAutoProvision, it will mutate, will create the namespace,
+	after that it will run the NamespaceExists, it will validate, if namespace created and exists or not.
+	
+	# Check it after this course, need to understad properly, https://ibm-learning.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/48276505#overview
+	
