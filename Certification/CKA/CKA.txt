@@ -1,6 +1,8 @@
 CKA reference to the course https://github.com/kodekloudhub/certified-kubernetes-administrator-course
 
 
+you can use "k" insted of "kubectl"
+
 $ kubectl get all
 $ kubectl replace --foce -f pod.yaml -> delete exesting pod and will create new from same file.
 
@@ -316,6 +318,10 @@ Deployment: -
 			name: nginx
 			resources: {}
 	status: {}
+	
+	Deployment update and rollback: -
+		Advance topic, check it here <link>
+		
 	
 Services: -
 	
@@ -928,3 +934,590 @@ Validate and mutate admission controller: -
 	
 	# Check it after this course, need to understad properly, https://ibm-learning.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/48276505#overview
 	
+
+Logging and Monitoring: -
+
+	K8s has the kubelet agent, which get instruction from k8s api master server and execure.
+	kubelet has another sub component named as cADVISOR (Container advisor), this retrive the performance from pod and make availabe 
+	through kubelet api to metrics server.
+	
+	by Default metrics server is not there you will need to configure it, from github. check on google how to configure it.
+	$ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+	
+	after configuration you can run "$ kubectl top node" an "$ kubectl top pod" command
+	with above command you can check how much CPU and memory get consumned by the node and the pod.
+	
+	log: - 
+		"$ kubectl logs -f <pod name>" you will get all the logs related to the container inside the node.
+		If there are multiple containers inside the same node, you can use "$ kubectl logs -f <pod name> <container name>" 
+		
+Docker ommands and args: -
+	
+	"$ docker run ubuntu" will run ubuntu container and exit, container is not up and running.
+	container ment to do some task, like computation, some analysis and not to do some continus task, like hosting OS, so once its task is done it will exit.
+	
+	If you append the command as a argument at the end of "docke run command" , it will execute that command, if there is some CMD or ENTRYOPINT mentioned in Dockerfile, 
+	even that aslo will get overwitten that command.
+	
+	CMD ["sleep", "5"] or CMD sleep 5, mention this in Dockerfile, and it will execute everytime when we run the container.
+	CMD should be mentioned exactly like that, not like CMD["sleep 5"] or CMD[sleep 5], it will give error.
+	
+	you can use the ENTRYOPINT as well, ENTRYOPINT can access the argiment from commandline.
+	if you just mention the sleep in ENTRYOPINT and pass the 5 as here "$ docker run ubuntu 5" then it will sleep for 5 sec.
+	But if you did same while using the CMD it will replace whole "$ CMD["sleep", "5"]" with 5 and then Dockerfile dont know what to do with 5 so you will get error.
+	also if you just mention "$ CMD["sleep"]" then Dockerfile will treate it as sleep and wont able to execute any command.
+	
+Pod ommand and args: -
+
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx
+a	spec:
+	  containers:
+	  - image: nginx
+		name: nginx
+		command: ["sleep", 10]									# this will get executed as ENTRYOPINT
+		args: ["7"]												# this will get execute as CMD
+		
+		
+Environment variable: -
+
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx
+	spec:
+	  containers:
+	  - image: nginx
+		name: nginx
+		env:													# export
+		- name: APP_COLOR										# APP_COLOR=
+		  value: blue											# blue
+		  
+	configMaps: -
+		If your server have multile pods and resources then it is difficult to manage the environment veriables,
+		in this kind of scenario configMaps comes handy, you can create configMaps and mention it in pod. 
+		
+		you can create from below command: -
+		
+		$ kubectl create configmap ashu-config --from-literal=NAME=ashu \
+		> --from-literal=AGE=75 \
+		> --from-literal=PLACE=heaven
+
+		configmap/ashu-config created
+
+		apiVersion: v1
+		data:
+		  AGE: "75"
+		  NAME: ashu
+		  PLACE: heaven
+		kind: ConfigMap
+		metadata:
+		  creationTimestamp: null
+		  name: ashu-config
+		
+		$ kubectl get configmap
+		NAME                       DATA   AGE
+		ashu-config                3      8m58s
+
+		$ kubectl describe configmap ashu-config
+		Name:         ashu-config
+		Namespace:    default
+		Labels:       <none>
+		Annotations:  <none>
+
+		Data
+		====
+		AGE:
+		----
+		75
+
+		NAME:
+		----
+		ashu
+
+		PLACE:
+		----
+		heaven
+
+
+		BinaryData
+		====
+
+		Events:  <none>
+
+		If there are multile parameters then it will be complicatated and difficult to write all the options and parameters, so you can create the file, just mention all the parametest in that file.
+
+		$ cat configMAp.properties 
+		NAME=ashu
+		AGE=75
+		PLACE=heaven
+
+		$ kubectl create configmap ashu-configmap-from-file --from-file=/root/configMAp.properties --dry-run=client -o yaml
+		apiVersion: v1
+		data:
+		  configMAp.properties: |
+			NAME=ashu
+			AGE=75
+			PLACE=heaven
+		kind: ConfigMap
+		metadata:
+		  creationTimestamp: null
+		  name: ashu-configmap-from-file
+		
+		$ kubectl create configmap ashu-configmap-from-file --from-file=/root/configMAp.properties                         
+		configmap/ashu-configmap-from-file created
+		
+		$ kubectl get configmap
+		NAME                       DATA   AGE
+		ashu-configmap-from-file   1      7s
+		
+		$ kubectl describe configmap ashu-configmap-from-file
+		Name:         ashu-configmap-from-file
+		Namespace:    default
+		Labels:       <none>
+		Annotations:  <none>
+
+		Data
+		====
+		configMAp.properties:
+		----
+		NAME=ashu
+		AGE=75
+		PLACE=heaven
+
+
+
+		BinaryData
+		====
+
+		Events:  <none>
+		
+	ConfigMap from yaml file: -
+	
+	$ cat configmap.yaml 
+	apiVersion: v1
+	kind: ConfigMap
+	metadata:
+	  name: ashu-configmap-from-yaml
+	data:
+	  NAME: ashu
+	  AGE: 75
+	  PLACE: heaven
+	
+	$ kubectl create -f configmap.yaml
+	configmap/ashu-configmap-from-yaml created
+	
+	$ kubectl get configmap
+	NAME                       DATA   AGE
+	ashu-configmap-from-yaml   3      14s
+	
+	$ kubectl describe configmap ashu-configmap-from-yaml
+	Name:         ashu-configmap-from-yaml
+	Namespace:    default
+	Labels:       <none>
+	Annotations:  <none>
+
+	Data
+	====
+	AGE:
+	----
+	75
+
+	NAME:
+	----
+	ashu
+
+	PLACE:
+	----
+	heaven
+
+
+	BinaryData
+	====
+
+	Events:  <none>
+	
+	How we can configure it in pod or use those veriables in pod
+
+	$ kubectl get configmap
+	NAME                       DATA   AGE
+	ashu-config                3      29m
+	ashu-configmap-from-file   1      20m
+	ashu-configmap-from-yaml   3      9m31s
+	kube-root-ca.crt           1      28d
+
+	$ cat pod.yaml 
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  creationTimestamp: null
+	  labels:
+		run: nginx
+	  name: nginx
+	spec:
+	  containers:
+	  - image: nginx
+		name: nginx
+		envFrom:								# this is list do we can mention as meny parameters as we want even configMap also.
+		- configMapRef: 
+			name: ashu-config
+			
+	$ kubectl create -f pod.yaml 
+	pod/nginx created
+	
+	$ kubectl describe pod nginx
+	Name:             nginx
+	Namespace:        default
+	Priority:         0
+	Service Account:  default
+	Node:             node01/172.30.2.2
+	Start Time:       Sat, 18 Oct 2025 12:07:52 +0000
+	Labels:           run=nginx
+	Annotations:      cni.projectcalico.org/containerID: a231f5adbe6e616e1085271118f58f4bbf349be3b3b4e092f06ac15a9c559e77
+					  cni.projectcalico.org/podIP: 192.168.1.4/32
+					  cni.projectcalico.org/podIPs: 192.168.1.4/32
+	Status:           Running
+	IP:               192.168.1.4
+	IPs:
+	  IP:  192.168.1.4
+	Containers:
+	  nginx:
+		Container ID:   containerd://428dd20613baf3781e43675fb19d6091a4fee7ec026a3622e5b523e2f516a77f
+		Image:          nginx
+		Image ID:       docker.io/library/nginx@sha256:3b7732505933ca591ce4a6d860cb713ad96a3176b82f7979a8dfa9973486a0d6
+		Port:           <none>
+		Host Port:      <none>
+		State:          Running
+		  Started:      Sat, 18 Oct 2025 12:08:01 +0000
+		Ready:          True
+		Restart Count:  0
+		Environment Variables from:
+		  ashu-config  ConfigMap  Optional: false
+		Environment:   <none>
+		Mounts:
+		  /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-vz6xb (ro)
+	Conditions:
+	  Type                        Status
+	  PodReadyToStartContainers   True 
+	  Initialized                 True 
+	  Ready                       True 
+	  ContainersReady             True 
+	  PodScheduled                True 
+	Volumes:
+	  kube-api-access-vz6xb:
+		Type:                    Projected (a volume that contains injected data from multiple sources)
+		TokenExpirationSeconds:  3607
+		ConfigMapName:           kube-root-ca.crt
+		Optional:                false
+		DownwardAPI:             true
+	QoS Class:                   BestEffort
+	Node-Selectors:              <none>
+	Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+								 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+	Events:
+	  Type    Reason     Age   From               Message
+	  ----    ------     ----  ----               -------
+	  Normal  Scheduled  69s   default-scheduler  Successfully assigned default/nginx to node01
+	  Normal  Pulling    68s   kubelet            Pulling image "nginx"
+	  Normal  Pulled     61s   kubelet            Successfully pulled image "nginx" in 7.727s (7.727s including waiting). Image size: 62706233 bytes.
+	  Normal  Created    60s   kubelet            Created container: nginx
+	  Normal  Started    60s   kubelet            Started container nginx
+	  
+Secret: -
+	secret is exactly like configMap, just the difference is it stores the username and password, so its a secret.
+	you can encode the test with "$ echo "ash-jd" | base64" command, base64 is very basic form of encoding, there are multiple way, that you can use.
+	
+		$ kubectl create secret generic ashu --from-literal=USER=ashu --dry-run=client -o yaml
+		apiVersion: v1
+		data:
+		  USER: YXNodQ==
+		kind: Secret
+		metadata:
+		  creationTimestamp: null
+		  name: ashu
+
+		$ kubectl create secret generic ashu --from-literal=USER=ashu
+		secret/ashu created
+
+		$ kubectl get secret
+		NAME   TYPE     DATA   AGE
+		ashu   Opaque   1      10s
+
+
+	From file: -
+
+		$ cat secret.properties 
+		USER=ashu
+
+		$ kubectl create secret generic ashu-from-file --from-file=/root/secret.properties --dry-run=client -o yaml
+		apiVersion: v1
+		data:
+		  secret.properties: VVNFUj1hc2h1Cg==
+		kind: Secret
+		metadata:
+		  creationTimestamp: null
+		  name: ashu-from-file
+
+		$ kubectl create secret generic ashu-from-file --from-file=/root/secret.properties                         
+		secret/ashu-from-file created
+
+		$ kubectl get secrets
+		NAME             TYPE     DATA   AGE
+		ashu             Opaque   1      5m4s
+		ashu-from-file   Opaque   1      8s
+
+		$ kubectl describe secret ashu-from-file
+		Name:         ashu-from-file
+		Namespace:    default
+		Labels:       <none>
+		Annotations:  <none>
+
+		Type:  Opaque
+
+		Data
+		====
+		secret.properties:  10 bytes
+	
+	From yaml file.
+
+		$ echo "ashu" | base64
+		YXNodQo=
+
+		$ cat secret.yaml 
+		apiVersion: v1
+		kind: Secret
+		metadata:
+		  name: ashu-from-yaml-file
+		data:
+		  USER: YXNodQo=
+		
+		$ kubectl create -f secret.yaml 
+		secret/ashu-from-yaml-file created
+		
+		$ kubectl describe secret ashu-from-yaml-file
+		Name:         ashu-from-yaml-file
+		Namespace:    default
+		Labels:       <none>
+		Annotations:  <none>
+
+		Type:  Opaque
+
+		Data
+		====
+		USER:  5 bytes
+	
+	Pass the secret in pod
+
+		$ cat pod.yaml 
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  creationTimestamp: null
+		  labels:
+			run: nginx
+		  name: nginx
+		spec:
+		  containers:
+		  - image: nginx
+			name: nginx
+			envFrom:								# this is list do we can mention as meny parameters as we want even configMap or even secret.
+			- secretRef: 
+				name: ashu
+
+MultiContainerPod: -
+
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  creationTimestamp: null
+		  labels:
+			run: nginx
+		  name: nginx
+		spec:
+		  containers:								# this is array, you can mention as much container as you want in array format.
+		  - image: nginx
+			name: nginx-container
+		  - image: busybox
+			name: busybox-container
+			
+	There are some patterns of multicontainer pods,
+	
+	Co-located container: -
+		So both the containers start at a time and dependent on each other, and continue service.
+		
+			apiVersion: v1
+			kind: Pod
+			metadata:
+			  creationTimestamp: null
+			  labels:
+				run: nginx
+			  name: nginx
+			spec:
+			  containers:
+			  - image: nginx
+				name: nginx-container
+			  - image: busybox
+				name: busybox-container
+		
+	Regular init container: -
+		two containers, but one is just used to start the main container, once the main container is tarted then 1st container termeneted.
+		
+			apiVersion: v1
+			kind: Pod
+			metadata:
+			  creationTimestamp: null
+			  labels:
+				run: nginx
+			  name: nginx
+			spec:
+			  containers:								# this is array, you can mention as much container as you want in array format.
+			  - image: nginx
+				name: nginx-container
+			  initContainers:							# This container starts 1st. This is also an array.
+			  - image: busybox
+				name: busybox-container
+			  - image: busybox							# Then this container start, and at nginx container will start.
+				name: busybox-container-1
+
+		
+	Sidecar contaiern: -
+		Similart to regular init container, it start the mian container, but does not get terminited, it continues operation with main container.
+		Sidecar container usually used to get logs of termination of main-container.
+		
+			apiVersion: v1
+			kind: Pod
+			metadata:
+			  creationTimestamp: null
+			  labels:
+				run: nginx
+			  name: nginx
+			spec:
+			  containers:								# This is array, you can mention as much container as you want in array format.
+			  - image: nginx
+				name: nginx-container
+			  initContainers:							# This container starts 1st. This is also an array.
+			  - image: busybox
+				name: busybox-container
+				restartPolicy: Always					# This make sure that this container never get down, until main-cintainer dont get terminiated, so works as side-car.
+		
+		
+	The difference in Co-located and Sidecar contaiern we have privalage to start the 1st container in sidecar container, but in co-located container, both have to start at a time.
+	
+	
+Auto scalling: -
+	Infra Vertical scaling: -
+		when you keep same server and scale up the resource like CPU and memory, thats a vertical scaling.
+	
+	Infra Horizontal scaling: -
+		when you create new server without disturbing original server, thats a hotizontal scaling.
+		
+	scaling workload exactly same in k8s like infra scaling, vertical scling is adding multiple container in single pod with "$ kubeclt edit pod <podname>" command.
+	and for horizontal scaling we increase the number of pods with "$ kubeclt scale" command.
+	
+	horizontal pod autoscaler(HPA): -
+		
+		HPA keep checking the resources (resource metrics)from the deployment/pod file and if it exceds that level which we have mentioned in command it will scale up.
+		
+		$ k create deployment dep-app-ash --image=nginx --replicas=4
+		deployment.apps/dep-app-ash created
+
+		$ k autoscale deployment dep-app-ash --cpu-percent=50 --min=1 --max=10
+		horizontalpodautoscaler.autoscaling/dep-app-ash autoscaled
+		
+		# "--cpu-percent=50 --min=1 --max=10" If resource get utilised till 50% then scale, while scaling down and up, min down should be 1 pod and max up should be 10 pods
+
+		$ k get hpa
+		NAME          REFERENCE                TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+		dep-app-ash   Deployment/dep-app-ash   cpu: <unknown>/50%   1         10        4          20s
+
+		$ k autoscale deployment dep-app-ash --cpu-percent=50 --min=1 --max=10 --dry-run=client -o yaml
+		apiVersion: autoscaling/v2
+		kind: HorizontalPodAutoscaler
+		metadata:
+		  creationTimestamp: null
+		  name: dep-app-ash
+		spec:
+		  maxReplicas: 10
+		  metrics:
+		  - resource:
+			  name: cpu
+			  target:
+				averageUtilization: 50
+				type: Utilization
+			type: Resource
+		  minReplicas: 1
+		  scaleTargetRef:
+			apiVersion: apps/v1
+			kind: Deployment
+			name: dep-app-ash
+		status:
+		  currentMetrics: null
+		  desiredReplicas: 0
+		  
+	with yaml file: -
+
+		apiVersion: autoscaling/v2
+		kind: HorizontalPodAutoscaler
+		metadata:
+		  name: hpa-name
+		spec:
+		  scaleTargetRef:
+			apiVersion: apps/v1
+			kind: Deployment
+			name: dep-app-ash
+		  minReplicas: 2
+		  maxReplicas: 10
+		  metrics:
+			- type: Resource
+			  resource:
+				name: cpu
+				target:
+				  type: Utilization
+				  averageUtilization: 50
+
+	In place pod resizing: -
+
+		only work for CUP and memory, and need to check this leacture once again,
+		https://ibm-learning.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/48755083#overview
+		
+	Vertical pod autoscaling(VPA): -
+		Vertical pos autoscaling does not comes with default seting, we need to configure it. 
+		
+		we neec to confire it in cluster 
+		"$ git clone https://github.com/kubernetes/autoscaler.git"
+		"$ cd autoscaler/vertical-pod-autoscaler/"
+		"$ ./hack/vpa-up.sh"
+		
+		so this is not built in feature so we need to write yaml file always,
+		
+		one way to scale verticaly, is to edit that pod, like "$ kubeclt edit pod " and make changes in that file, delete previous pod and recreate new one.
+		https://ibm-learning.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/48755089#overview
+		
+Cluster maintenence : - 
+	
+	OS upgrade: -
+	
+		conside due to some reason, node is down for 5 min for some reason, then all the pods from that node will be killed, becaus it considered as dead node.
+		and why 5 min, because it configured in k8s server, and when node comes up then it comes as blank, no pod or any other service will be runing on that node,
+		when the node is down, and you have replica or deplouyemnt from that node, then those pods will be created on other node.
+		
+		while the maintenence, you will need to take down the nodes, if that node is down for 5 min it will be dead, so you can drain the node,
+		with command "$ kubectl drain node-1" you will need to use "--ignore-daemonsets to ignore daemonsets" option, then all the resources from that node will be shifted to the other node, and node will be completely empty,
+		and then you can work on it. Once maintenence is node then node can be come up with "$ kubectl uncordon node-1", so now node is up and running but still its empty,
+		then node is up, then all the resources which moved to other node will not come automatecly to that node, if that resource deleted and recreated then it will be on that node(node-1)
+		
+		there is another command "$ kubectl cordon node-2" which will make sure that no any other resource will scheduled for this node.
+		so that we can drain the node and cordon, so will be empty and no other resource will be on that node.
+		
+		you cannot drain the node if there is pod which is not managed by replicas or deployment.
+		because pod which is managed by replics or deployment can be easily created but, canot create indivusal pod, so cant drain that node.
+		
+		
