@@ -1,0 +1,677 @@
+Certifications
+CompTIA Network+
+Cisco CCNA (Most Popular)
+Cisco CCNP (Enterprise)
+
+	Switch 
+		A switch is a physical device that connects multiple machines and forwards data to the correct machine based on MAC addresses.
+		connect both machine at eth0 to switch and switch will take care of data transfer, and congrats you have created the small network.
+		
+	Routing: -
+		A Router is a physical device that connects multiple networks to each other, also router is shared in multiple networs it as ips as per networks
+		each netwokr assinge one ip to router, so one router can have multiple IPs
+		
+		
+	Switch:
+		A switch is a networking device that connects multiple devices within the same local network (like computers, printers, or servers in a home 
+		or office). It uses MAC addresses to send data only to the specific device it’s meant for, making communication fast and efficient. Switches 
+		operate at the data link layer and help create a smooth internal network where devices can easily share information.
+
+	Router:
+		A router connects multiple networks together, most commonly linking your local home or office network to the internet. It uses IP addresses to 
+		determine the best path for data to travel across networks. Routers manage traffic between networks, assign IP addresses, and often include 
+		extra features like firewalls or Wi-Fi, ensuring secure and organized communication.
+
+	Gateway:
+		A gateway acts as a bridge between two different networks that may use different protocols or architectures. It translates data from one 
+		format to another so devices on one network can communicate with devices on another. Gateways are often found at network edges, enabling 
+		communication between incompatible systems, such as connecting a company’s internal network to an external service or cloud platform.
+		
+		
+	Diff in Router and Gateway
+
+	Here’s the difference between a router and a gateway in simple terms:
+	Router
+		A router connects similar types of networks (for example, your home network to the internet). It mainly uses IP addresses to route data 
+		between networks. Routers decide the best path for data to travel and handle traffic between connected networks.
+	Gateway
+		A gateway connects different or incompatible networks (for example, a network using one protocol to another using a different protocol). 
+		It translates data formats, protocols, or architectures so devices on each network can communicate. A gateway is more complex than a router 
+		because it performs conversion in addition to routing.
+
+	In short:
+	Router = connects similar networks + routes data.
+	Gateway = connects different networks + converts data.
+
+	DNS: -
+		
+		Domain name basics 
+			The first part of www.google.com is www, which is a subdomain. A subdomain is used to organize different sections of a website.
+			For example, mail.google.com is Google’s email service, and drive.google.com is Google Drive. The www subdomain is traditionally 
+			used to indicate the web server, but technically it’s just one of many possible subdomains.
+			
+			The middle part, google, is the second-level domain (SLD). This is the main name of the website that the organization or individual 
+			owns and controls. For instance, in google.com, Google owns the “google” part, and in example.com, someone else could own “example”. 
+			The second-level domain represents the core identity of the website.
+			
+			The last part, .com, is the top-level domain (TLD). TLDs indicate the type or category of the domain, such as .com for commercial
+			businesses, .org for organizations, .edu for educational institutions, or .gov for government sites. Together, the subdomain, 
+			second-level domain, and TLD form a fully qualified domain name (FQDN), which uniquely identifies a resource on the internet.
+
+	Ping google.com -> result on screen 
+	When you run `ping www.google.com`, ping first needs an IP address, so it asks the system resolver to look up the name. The resolver follows the 
+	order in `/etc/nsswitch.conf` (usually `hosts: files dns`). First it checks `/etc/hosts` for a matching entry. If the name is not there, Linux 
+	reads the DNS servers from `/etc/resolv.conf` and sends a DNS query (UDP port 53) to the first nameserver listed. If no reply comes, it tries the 
+	next nameserver. The DNS server returns the IP address for google.com.
+
+	With the IP address known, ping creates ICMP Echo Request packets. The Linux kernel checks the routing table to choose the path, and if needed, 
+	performs ARP to get the MAC address of the next hop. Then the ICMP packets are sent to the destination. The remote machine replies with ICMP Echo 
+	Reply packets, and ping displays the results (time, TTL, packet size). This repeats every second until you stop the command.
+
+	if you want to see from where to where your request is going when you ping use "traceroute google.com" command, you will get all servers IPs
+	
+	$ tracert google.com (windows command)
+
+	Tracing route to google.com [142.250.195.46]
+	over a maximum of 30 hops:
+
+	  1     1 ms     1 ms     5 ms  192.168.1.1						-> you can search these IPs in google, and you will get the lication of each hops server.
+	  2    36 ms    16 ms    25 ms  110.226.15.255					-> pune 
+	  3    67 ms    36 ms     7 ms  125.20.27.9						-> bhopal
+	  4     8 ms     8 ms    10 ms  116.119.161.135					-> bangalore
+	  5    51 ms    12 ms    15 ms  173.194.125.54					-> California 
+	  6    10 ms     8 ms    10 ms  192.178.110.225					-> California
+	  7    13 ms    11 ms    10 ms  142.250.238.81					-> California -> found the server here in California
+	  8    23 ms    11 ms     9 ms  maa03s37-in-f14.1e100.net [142.250.195.46]
+
+	In short: **ping → resolver → nsswitch → hosts → DNS → IP → routing → ARP → ICMP exchange → output on screen.**
+
+		$ ip netns
+		cni-cdb9c97c-d002-69ab-d294-2a6e31b521bc (id: 0)
+		cni-8bc979c8-243d-eabb-9e46-8089108f676d (id: 1)
+
+		$ ip netns add ashu-newtwork
+
+		$ ip netns
+		cni-cdb9c97c-d002-69ab-d294-2a6e31b521bc (id: 0)
+		cni-8bc979c8-243d-eabb-9e46-8089108f676d (id: 1)
+		ashu-newtwork
+
+
+	"$ ip link"
+	this command will list and modify all interfaces on VM
+	"$ ip adder"
+	this command will list ips assigned to that interfaces
+	"$ ip adder add 192.0.0.1"
+	This command will set the ip to interface
+	"$ ip route"
+	will list the routing tabel
+	"$ ip route add192.0.0.1"
+	will add entries in the routing table
+	"$ cat /proc/sys/net/ipv4/ip_forward" -> 1
+	if 1 then ip forwarding is enabled
+	
+	
+https://www.youtube.com/watch?v=mNTs-shuFno
+Networking: -
+	To install all network related tools in linux we need "net-tools" package.
+
+	OSI 
+		7 leayers 
+		
+		Applications (HTTP, DNS, FTP, etc) 							|
+		presentation (Encryption (SSL/TLS), compression)			|
+		session      (Sessions, Sockets)							|	-> software realted
+		transport    (TCP/UDP, Ports) 							|
+		network      (IP address, Router, Packets)				|
+		data link    (MAC address, Switch, Frames)				| -> hardware related
+		physical     (Cables, WiFi signals, bits (0/1))			|
+		
+		Easy memory trick:
+		Please Do Not Throw samsung Pizza Away (7→1)
+	
+	TCP/IP Model (real-world model)
+	
+		| TCP/IP         | OSI Equivalent |
+		| -------------- | -------------- |
+		| Application    | 1, 2, 3        |Applications, presentation, session
+		| Transport      | 4              |
+		| Internet       | 5              |
+		| Network Access | 6 & 7          |data link, physical
+
+	
+	Ports
+	
+		| Port | Service |
+		| ---- | ------- |
+		| 80   | HTTP    |
+		| 443  | HTTPS   |
+		| 22   | SSH     |
+		| 53   | DNS     |
+		| 25   | SMTP    |
+
+	Commands
+	
+		$ ip link show    -> Show network interfaces
+		
+		network interfaces: - "You can consider a network interface as a panel or port to connect a device to a network. 
+		Interfaces can be physical (like eth0, wlan0) or virtual (like lo or docker0). The "$ ip link show" command lists all interfaces on the 
+		machine, not the networks connected to them."
+ 		
+		ChatGPT: - A network interface is the point where a device (or software) connects to a network. It’s the component that sends and receives 
+		network data. (A network interface is a communication endpoint between a system and a network.)
+		Physical network interface: - eth0, wlan0 
+		Virtual network interface: - lo, docker0, 
+		
+		A computer is like a house: the computer itself is the house, network interfaces are doors, networks are roads, and the internet is the 
+		city. One house can have many doors—front door, back door, garage door, and even internal doors—and all of them still belong to the same 
+		house. In the same way, one computer can have many network interfaces (physical or virtual), but it is still a single system. The command ip 
+		link show simply lists all the “doors” (network interfaces) on this one computer; it does not tell you how many computers exist or how many 
+		systems are connected to the internet.
+		
+		1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+			link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+		2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+			link/ether 12:91:75:a4:79:11 brd ff:ff:ff:ff:ff:ff
+		3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1454 qdisc noqueue state DOWN mode DEFAULT group default 
+			link/ether 76:4f:55:88:16:ce brd ff:ff:ff:ff:ff:ff
+		4: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN mode DEFAULT group default 
+			link/ether 96:f1:63:ff:b1:41 brd ff:ff:ff:ff:ff:ff
+		7: cali77ad5dd7d59@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default 
+			link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netns cni-af2f062f-f7bb-8c3b-c41f-1e6b5a038152
+		8: cali3fff0d080b9@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default 
+			link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netns cni-c97c1f03-06a3-0695-7351-da5a9152d0b1
+
+		$ ip addr show    -> Show IP addresses
+		1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+			link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+			inet 127.0.0.1/8 scope host lo
+			   valid_lft forever preferred_lft forever
+			inet6 ::1/128 scope host noprefixroute 
+			   valid_lft forever preferred_lft forever
+		2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+			link/ether 12:91:75:a4:79:11 brd ff:ff:ff:ff:ff:ff
+			inet 172.30.1.2/24 brd 172.30.1.255 scope global dynamic noprefixroute enp1s0				-> this is actual IP of your machine, how?
+																											here is how, see "enp1s" this is physical port and scope is global, also for reference "BROADCAST,MULTICAST,UP,LOWER_UP"
+			   valid_lft 86313053sec preferred_lft 75523853sec
+			inet6 fe80::18b:e561:730:5e85/64 scope link 
+			   valid_lft forever preferred_lft forever
+		3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1454 qdisc noqueue state DOWN group default 
+			link/ether 76:4f:55:88:16:ce brd ff:ff:ff:ff:ff:ff
+			inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+			   valid_lft forever preferred_lft forever
+		4: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN group default 
+			link/ether 96:f1:63:ff:b1:41 brd ff:ff:ff:ff:ff:ff
+			inet 192.168.0.0/32 brd 192.168.0.0 scope global flannel.1
+			   valid_lft forever preferred_lft forever
+			inet6 fe80::94f1:63ff:feff:b141/64 scope link 
+			   valid_lft forever preferred_lft forever
+		7: cali77ad5dd7d59@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+			link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netns cni-af2f062f-f7bb-8c3b-c41f-1e6b5a038152
+			inet6 fe80::ecee:eeff:feee:eeee/64 scope link 
+			   valid_lft forever preferred_lft forever
+		8: cali3fff0d080b9@if3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+			link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netns cni-c97c1f03-06a3-0695-7351-da5a9152d0b1
+			inet6 fe80::ecee:eeff:feee:eeee/64 scope link 
+			   valid_lft forever preferred_lft forever
+
+		ping www.google.com
+		
+		$ ip route show    -> route table.
+		default via 172.30.1.1 dev enp1s0 proto dhcp src 172.30.1.2 metric 1002 mtu 1500 
+		172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown 
+		172.30.1.0/24 dev enp1s0 proto dhcp scope link src 172.30.1.2 metric 1002 mtu 1500 
+		192.168.0.2 dev cali77ad5dd7d59 scope link 
+		192.168.0.3 dev cali3fff0d080b9 scope link 
+		192.168.1.0/24 via 192.168.1.0 dev flannel.1 onlink 
+
+MAC address = Media Access Control address
+
+When a device wants to send data on LAN, it needs:
+	Destination IP (logical address) 	-> IP tell which area?
+	Destination MAC (physical address)	-> MAC tell which house from IP area?
+	MAC works at Layer 2 (Data Link).
+
+When request found the IP address, after that MAC has to find, so to find MAC in IP 
+ARP comes to play and find MAC
+
+ARP table (Address Resolution Protocol) 
+	ARP table stores recently discovered MAC addresses for IPs you communicated with. It is a cache.
+	So tables means the recent communation by ARP, thats it.
+	and why command is not "ip arp", arp is differen command, and "neigh" is short for "neighbor", it is asking who is in neighborin LAN, who just talked to me.
+	so "ip neigh"
+	
+	$ ip neigh
+		192.168.0.3 dev cali3fff0d080b9 lladdr 9e:c6:c3:5f:6b:b6 REACHABLE 
+		192.168.1.0 dev flannel.1 lladdr 4e:49:2a:b5:3a:bd PERMANENT 
+		192.168.0.2 dev cali77ad5dd7d59 lladdr 8e:0c:3a:9d:4a:8a REACHABLE 
+		172.30.1.1 dev enp1s0 lladdr 02:00:00:00:00:00 REACHABLE 
+
+How Data Moves Inside Your LAN (Important for Experts)
+	1️⃣ You ping 172.30.1.1
+	Your system checks ARP table:
+	If MAC known → sends packet directly
+	If MAC unknown → sends ARP broadcast
+	
+	2️⃣ ARP gives destination MAC
+	ARP just ask to all devices that Who has this IP? Give me the MAC.
+	Now your machine knows which physical device to talk to.
+	
+	3️⃣ Frame is created
+	A LAN frame includes:
+	Source MAC (your NIC)
+	Destination MAC (router)
+	Encapsulated IP packet inside
+	
+	4️⃣ Switch uses MAC table to forward frame
+	Switch learns:
+	On which port each MAC lives
+	
+	5️⃣ Router receives frame
+	Router strips Layer 2 (MAC), processes Layer 3 (IP).
+	This is the whole Layer 2 → Layer 3 interaction.
+
+
+DNS: -
+
+	So consider the dns as /etc/hosts file, just diff is it on internate and has all hostname and ips.
+	
+	So you know what a domain is, that's the name of a website. DNS is Domain Name Service.
+	When you hit derive.google.com on a browser or ping maps.google.com on a Linux machine, this request goes to the "nsswitch.conf" file.
+	This file is the network service switch configuration; it guides the request where to go. The file content looks like this:
+	"hosts: files dns", so it is telling to check the hosts file first which is at /etc/hosts and it has the IP and hostname of local machine only, 
+	and if you don't get resolution, then go to the DNS server. When the request goes to DNS, it checks the "resolv.conf"; in this file, the request 
+	will understand where the DNS is. The resolv.conf file looks like this: "nameserver 8.8.8.8", so "8.8.8.8" is Google's DNS checking server, 
+	and it will check the DNS there.
+
+	After this point, your request is on the internet and searching on the internet.
+	So to search "derive.google.com" or "maps.google.com", this name gets divided into 3 parts: "subdomain"."domain"."top-level domain".
+	So "drive" or "maps" is the subdomain, "google" is the domain name, and "com" is the top-level domain. It first searches for the TLD, so ".com". 
+	There are multiple TLDs like ".com", ".net", ".gov", ".org", and a lot more, and their domains are managed by the "root DNS cluster server". 
+	So on the internet, your request comes here first.
+
+	The root DNS cluster point your request to where all ".com" domains are, and your request gets ".com" server. Now it searches for "derive.google" 
+	and "maps.google". Once it gets where ".com" is, then it comes to your DNS which you bought from GoDaddy. The DNS you manage then finds the 
+	"google" part, not only the subdomain. The subdomain also gets resolved easily and gets an IP, and then you will get your request's output on 
+	the screen.
+	
+	There are differen types of records, A , AAAA, CNAME recored, as we mention just ip name with ipv4, its a A record.
+	if you mention same ip with ipv6 then its a AAAA record, and ip with name its a CNAME record.
+	
+CoreDNS: -
+	Specific to k8s only, works under k8s cluster, configured to help pods to find the ips or service names of other pods and services.
+	
+Internet gateway -> route table -> VPC -> application
+NAT Gateway (Network Address Translation Gateway): -
+
+	
+Network commands: -
+	need net-tools to install 
+
+	$ netstat -> shows netwotk status 
+
+	$ ifconfig ->
+	shows the network interface details similatr to "$ ip link show" command
+
+	| Feature        | `ifconfig`                                           | `ip link show`                                            |
+	| -------------- | ---------------------------------------------------- | --------------------------------------------------------- |
+	| Focus          | Interface **configuration** (IP, netmask, broadcast) | Interface **status** and hardware info (link, MAC, flags) |
+	| Modern usage   | Deprecated on many Linux distros                     | Recommended replacement for `ifconfig`                    |
+	| IP addresses   | Shows IP addresses directly                          | Requires `ip addr show` to see IP addresses               |
+	| Command syntax | Older                                                | More consistent with `ip` suite (link, addr, route, etc.) |
+
+
+	you can reack the your request from where to where it is hopping, use belwo caommnd: -
+	"$ traceroute www.flipkart.com"
+
+	and to get exact IP of any server use belwo command: -
+	"$ nslookup www.google.com"
+
+	"$ tracepath google.com
+	trace the path of that IP
+	
+	"$ dig"
+	check about this command.\
+
+subnet and subnet table: -
+
+	| CIDR | Subnet Mask        |
+	| ---- | ---------------    | 
+	| /8   | 255.0.0.0/8        |	 large       32 - 8 = 24     ->   2^24  ->  16,777,216 ips
+	| /16  | 255.255.0.0/16     |	 medium	     32 - 16 = 16    ->   2^16  ->  65,536 ips
+	| /24  | 255.255.255.0/24   |	 small       32 - 24 = 8     ->   2^8   ->  256 ips
+	| /32  | 255.255.255.255/32 | 	 single ip   32 - 32 = 0     ->   2^0   ->  1 ips
+
+	in above table /n means the fix numbers, each number is 8 bit i.e one number, it we say /8 then we are telling, keep 8 bit (one number) fix then 
+	you can vary others numbers (three numbers) in /16 two numbers will be fix in /24 three numbers will be fix and in /32 we get only 1 ip. So we have 
+	total 4 numbers in ip, so 4 * 8 = 32 so IP becomes 32 bit long, so to calculate how many ips do we have, we do 32 - n and  2^(32 - n)
+	
+	and why 2^(32 - n), a single bit containes 0 and 1 to two numbers, so 2^(32 - n)
+	
+	so this part is not that nessecary, just for info, 
+	each ip get divided in two parts, network part and device part, like consider a switch in network and our network with 10.0.0.0/16 ips, then last two parts are 
+	veriable and 1st two parts are fixed, so 1st two number are network and last two parts are device ip, if ip is 10.0.1.2, then 10.0 is network and 1.2 is device
+	Now consider the network 10.0.0.0/8 then only one number (initial number) is fix and last three number can vary, so 10 is netwokr and last three numbers are 
+	device id
+	
+	why network and host part matters, it tells which device from which network, for more pression.
+	
+Network Namespaces: -
+
+	use to isolate networks
+	
+	$ ip netns add ashu									 -> create network namespces 
+
+	$ ip netns add ashutosh
+
+	$ ip netns 											 -> list network namespces 
+	cni-777aef05-9662-5ea6-52cb-dd90a69acdd6 (id: 0)
+	cni-b873ff3a-8b1b-845a-c842-bf199559fc8b (id: 1)
+	ashu
+	ashutosh
+	
+	$ ip netns exec ashu ip link show					-> execute commands in ashu name namespace
+	1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+		link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+
+	$ ip -n ashu link show								-> exact same command as above.
+	1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+		link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+
+
+	mini project, Create two namespaces and establish connect between them.
+
+		created two namespaces
+		$ ip netns add ashu
+		$ ip netns add ashutosh
+
+		create network interfaces for each namespace and connect to eachother.
+		By default when we are creating the veth interface it has to be in pair, kernel dont allow you to create single veth interface.
+		$ ip link add veth-ashu type veth peer name veth-ashutosh
+
+		add 		-> add interface
+		type veth 	-> vertual interface
+		peer 		-> connect to 
+
+		Now connect each interface to its namespace.
+		$ ip link set veth-ashu netns ashu
+		$ ip link set veth-ashutosh netns ashutosh
+
+		assign IP to interface
+		$ ip -n ashu addr add 192.20.10.1 dev veth-ashu
+		$ ip -n ashutosh addr add 192.20.10.2 dev veth-ashutosh
+
+		dev -> device 
+
+		set it up
+		$ ip -n ashu link set veth-ashu up
+		$ ip -n ashutosh link set veth-ashutosh up
+
+		Now ping, ping dosent executed, because, kernel still dont know which route to take, we will need to add route table.
+		$ ip netns exec ashu ping 192.20.10.2
+		ping: connect: Network is unreachable
+
+		you can check there is no router, run below command and you will see nothing.
+		$ ip -n ashu route
+
+		now add route to each other namespaces
+		$ ip -n ashu route add 192.20.10.2/32 dev veth-ashu
+		$ ip -n ashutosh route add 192.20.10.1/32 dev veth-ashutosh
+
+		ping now, and ping worked.
+		$ ip netns exec ashu ping 192.20.10.2
+		PING 192.20.10.2 (192.20.10.2) 56(84) bytes of data.
+		64 bytes from 192.20.10.2: icmp_seq=1 ttl=64 time=0.056 ms
+		64 bytes from 192.20.10.2: icmp_seq=2 ttl=64 time=0.035 ms
+
+		check route as well.
+		$ ip -n ashu route
+		192.20.10.2 dev veth-ashu scope link 
+		$ ip -n ashutosh route
+		192.20.10.1 dev veth-ashutosh scope link 
+		
+		check arp table aslo, cashed connection. 
+		$ ip netns exec ashu arp
+		Address                  HWtype  HWaddress           Flags Mask            Iface
+		192.20.10.2              ether   16:45:31:56:ed:4e   C                     veth-ashu
+		$ ip netns exec ashutosh arp
+		Address                  HWtype  HWaddress           Flags Mask            Iface
+		192.20.10.1              ether   ca:52:7c:2e:f6:28   C                     veth-ashutosh
+		
+		arp command from host, host dont know what happed in ashu and ashutosh namespace.
+		$ arp
+		Address                  HWtype  HWaddress           Flags Mask            Iface
+		192.168.0.3              ether   16:b7:09:e7:35:03   C                     cali3fff0d080b9
+		192.168.0.2              ether   d2:7a:36:25:b5:71   C                     cali77ad5dd7d59
+		172.30.1.1               ether   02:00:00:00:00:00   C                     enp1s0
+		192.168.1.0              ether   da:52:67:24:5c:82   CM                    flannel.1
+		
+		project complete delete interfaces
+		$ ip -n ashu link del veth-ashu
+		when one interface deleted other end will get deleted automatically.
+		
+	Now we worked on only two namespaces, but what ot there are more than two, then we will need to create out own network and to ctreate network we need switch
+	why switch, because, switch is common hub or center where all the samespaces can connect and communate to eachother whcih called as network, otherwise we 
+	have to create each veth betwen each namepaces which is messy.
+	
+	another mini project create bridge, create three namespace and make connect to each other, each machine shoul pong to other, also make shour
+	host shoud ping machines.
+	
+		$ ip netns add ashu 
+		$ ip netns add ashutosh 
+
+		$ ip link add ashu-bridge type bridge 
+		$ ip link show
+		9: ashu-bridge: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+			link/ether 22:24:e7:9f:63:f7 brd ff:ff:ff:ff:ff:ff
+		ip link set ashu-bridge up
+		$ ip link show
+		9: ashu-bridge: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default qlen 1000
+			link/ether 22:24:e7:9f:63:f7 brd ff:ff:ff:ff:ff:ff
+
+		$ ip link add veth-ashu type veth peer name bridge-veth 
+		$ ip link add veth-ashutosh type veth peer name bridge-veth-2
+
+		$ ip link set veth-ashu netns ashu 
+		$ ip link set bridge-veth master ashu-bridge 
+		$ ip link set veth-ashutosh netns ashutosh 
+		$ ip link set bridge-veth-2 master ashu-bridge  
+
+		$ ip link set bridge-veth up
+		$ ip link set bridge-veth-2 up
+		$ ip -n ashu link set veth-ashu up
+		$ ip -n ashutosh link set veth-ashutosh up 
+
+		$ ip -n ashu addr add 192.20.10.1 dev veth-ashu 
+		$ ip -n ashutosh addr add 192.20.10.2 dev veth-ashutosh 
+		$ ip -n ashu route add 192.20.10.2/32 dev veth-ashu 					-> /32 is network subnet, used to talk to itself only, no external ip can talk to this.
+		$ ip -n ashutosh route add 192.20.10.1/32 dev veth-ashutosh					so you cant ping it from host use /24.
+
+		$ ip netns exec ashu ping 192.20.10.2
+		PING 192.20.10.2 (192.20.10.2) 56(84) bytes of data.
+		64 bytes from 192.20.10.2: icmp_seq=1 ttl=64 time=0.092 ms
+		64 bytes from 192.20.10.2: icmp_seq=2 ttl=64 time=0.046 ms
+		64 bytes from 192.20.10.2: icmp_seq=3 ttl=64 time=0.060 ms
+
+	Now try to ping the isolater network which you created from host.
+
+		in privious commands you have used /32, it subnet masking used to ping it self only no other ip can reach to this, so we nned to chnage from /32 to /24
+		$ ip -n ashu addr flush dev veth-ashu
+		$ ip -n ashu addr add 192.20.10.1/24 dev veth-ashu
+		$ ip -n ashu addr show veth-ashu
+		11: veth-ashu@if10: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+			link/ether ca:52:7c:2e:f6:28 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+			inet 192.20.10.1/24 scope global veth-ashu
+			   valid_lft forever preferred_lft forever
+
+		$ ip -n ashu link set veth-ashu up
+		$ ip link set ashu-bridge up
+		$ ip link set bridge-veth up
+
+		$ ping 192.20.10.1
+		PING 192.20.10.1 (192.20.10.1) 56(84) bytes of data.
+		64 bytes from 192.20.10.1: icmp_seq=1 ttl=64 time=0.097 ms
+		64 bytes from 192.20.10.1: icmp_seq=2 ttl=64 time=0.040 ms
+		64 bytes from 192.20.10.1: icmp_seq=3 ttl=64 time=0.054 ms
+		
+
+
+Docker network: -
+	there are three docker netwokrs none, host and bridge.
+		$ docker network ls
+		NETWORK ID     NAME      DRIVER    SCOPE
+		eacf63f1c97e   bridge    bridge    local
+		83f7ecfb10d9   host      host      local
+		950daef3ca71   none      null      local
+	
+		$ ip link show
+		3: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1454 qdisc noqueue state UP mode DEFAULT group default 
+			link/ether ca:06:f8:7d:a3:f4 brd ff:ff:ff:ff:ff:ff
+
+	so if you create nginx container with none (default network), you are not able to access nginx serivce because its isolated, no network is assigned
+	
+	if you create container in host network, then you can access it from host without any ip, like "$ curl localhost:80" with this command you can access nginx.
+		$ docker run -d --network host nginx
+		1aa2444094398aa42dabf595ea60973fe0c0b9151e8461774ff2888a07cd39d2
+
+		$ curl localhost:80
+		<!DOCTYPE html>
+		<html>
+		<head>
+		<title>Welcome to nginx!</title>
+		<style>
+		html { color-scheme: light dark; }
+		body { width: 35em; margin: 0 auto;
+		font-family: Tahoma, Verdana, Arial, sans-serif; }
+		</style>
+		</head>
+		<body>
+		<h1>Welcome to nginx!</h1>
+		<p>If you see this page, the nginx web server is successfully installed and
+		working. Further configuration is required.</p>
+
+		<p>For online documentation and support please refer to
+		<a href="http://nginx.org/">nginx.org</a>.<br/>
+		Commercial support is available at
+		<a href="http://nginx.com/">nginx.com</a>.</p>
+
+		<p><em>Thank you for using nginx.</em></p>
+		</body>
+		</html>
+
+
+	if you create container in bridge network, then you will need IP to access container even from the host, and you will get in "$ docker inspect <container name>"
+	
+	You can see IP range assigned to docket containers in bridge network. (172.17.0.1/16)
+		$ ip addr
+		3: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1454 qdisc noqueue state UP group default 
+			link/ether ca:06:f8:7d:a3:f4 brd ff:ff:ff:ff:ff:ff
+			inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+			   valid_lft forever preferred_lft forever
+			inet6 fe80::c806:f8ff:fe7d:a3f4/64 scope link 
+			   valid_lft forever preferred_lft forever	
+	
+		$ docker run -d --network bridge nginx
+		9b53180b83c41ec8546a339c47bea2bc3f06a660697c692fddfc46a5c993286f
+
+		$ docker inspect 9b53180b83c4
+		"Gateway": "172.17.0.1",
+		"GlobalIPv6Address": "",
+		"GlobalIPv6PrefixLen": 0,
+		"IPAddress": "172.17.0.2",
+		"IPPrefixLen": 16,
+		"IPv6Gateway": "",
+
+		$ curl 172.17.0.2:80
+		<!DOCTYPE html>
+		<html>
+		<head>
+		<title>Welcome to nginx!</title>
+		<style>
+		html { color-scheme: light dark; }
+		body { width: 35em; margin: 0 auto;
+		font-family: Tahoma, Verdana, Arial, sans-serif; }
+		</style>
+		</head>
+		<body>
+		<h1>Welcome to nginx!</h1>
+		<p>If you see this page, the nginx web server is successfully installed and
+		working. Further configuration is required.</p>
+
+		<p>For online documentation and support please refer to
+		<a href="http://nginx.org/">nginx.org</a>.<br/>
+		Commercial support is available at
+		<a href="http://nginx.com/">nginx.com</a>.</p>
+
+		<p><em>Thank you for using nginx.</em></p>
+		</body>
+		</html>
+
+	You can expose the service to outerworld aswell with -p option 
+		"$ docker run -d --network bridge -p 8080:80 nginx"
+		80 port is containers port and 8080 port is hosts port.
+		you can access this serivce on hostsip:8080, from outside world
+
+Container networking interface (CNI): - (check CNI part once again, you dident understood it well.)
+	CNI is basicelly you can create your own functions related to container network, and use them repetatively
+
+	It is a specification (set of rules) that defines how containers get networking—for example:
+	How a container gets an IP address
+	How containers talk to each other
+	How containers talk to the outside world
+
+	Why CNI exists
+		Kubernetes does not implement networking itself.
+		Instead, it says:
+		“I will use a CNI plugin to handle networking.”
+		So CNI is like a plug-in system for container networking.
+
+	What CNI does (high level)
+		When a pod is created:
+			Kubernetes asks the CNI plugin to set up networking
+			The plugin:
+				Assigns an IP address to the pod
+				Sets up routes
+				Connects the pod to the cluster network
+
+	Examples of CNI plugins
+		Weave Net
+		Calico
+		Flannel
+		Cilium
+		
+	CNI = the standard
+	CNI plugin = the actual implementation
+
+	here you will get all binaries realted to cni plugin 
+	"$ ls /opt/cni/bin/"
+	bandwidth  dhcp   firewall  host-device  ipvlan   loopback  portmap  README.md  static  tuning  vrf
+	bridge     dummy  flannel   host-local   LICENSE  macvlan   ptp      sbr        tap     vlan
+	
+	and you can checek which defalt plugine is configured 
+	"$ ls /etc/cni/net.d"
+	10-flannel.conflist      -> this file is yaml file and you can check all configuration relaed to configured plugin/e
+	
+	
+	Q. which plugine is install on this node 
+	asn. "$ ls /etc/cni/net.d/"
+		  10-flannel.conflist
+		  
+		  
+Ingress in k8s: -
+	
+	if you are using some URL then there is some default port which are configured to protocalls
+	like 
+	| Protocol   | Default Port |
+	| ---------- | ------------ |
+	| http://	 | 80           |
+	| https:// 	 | 443	        |
+	| ftp://  	 | 21           |
+	| ssh://  	 | 22           |	
+
+
+	So why we need ingress in k8s, in the production we need to expose our product to whole internet, so we need to create serivce and load balencer and configure it to acceess,
+	consider there are multiple services, so we will need multiple load balence, and its not feasalbe, to solve this problem we have ingress service.
+	Ingress can manage comming trafic can confiure port to the external world.
+	
+	Nginx can be used as loadbalencer
