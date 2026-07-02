@@ -57,6 +57,9 @@ Cisco CCNP (Enterprise)
 			The last part, .com, is the top-level domain (TLD). TLDs indicate the type or category of the domain, such as .com for commercial
 			businesses, .org for organizations, .edu for educational institutions, or .gov for government sites. Together, the subdomain, 
 			second-level domain, and TLD form a fully qualified domain name (FQDN), which uniquely identifies a resource on the internet.
+			
+			Note: - if you are hitting any url for 1st time and DNS not able to find in cache or local DNS it will go to "Root server dns" (daddy of DNS)
+			its a 13 DNS server knows all the URLs, IPs and know where to wrought each request.
 
 	Ping google.com -> result on screen 
 	When you run `ping www.google.com`, ping first needs an IP address, so it asks the system resolver to look up the name. The resolver follows the 
@@ -288,15 +291,34 @@ DNS: -
 	So to search "derive.google.com" or "maps.google.com", this name gets divided into 3 parts: "subdomain"."domain"."top-level domain".
 	So "drive" or "maps" is the subdomain, "google" is the domain name, and "com" is the top-level domain. It first searches for the TLD, so ".com". 
 	There are multiple TLDs like ".com", ".net", ".gov", ".org", and a lot more, and their domains are managed by the "root DNS cluster server". 
-	So on the internet, your request comes here first.
+	so there are 13 root DNS service and manages all the TLD, So on the internet, your request comes here first.
 
 	The root DNS cluster point your request to where all ".com" domains are, and your request gets ".com" server. Now it searches for "derive.google" 
 	and "maps.google". Once it gets where ".com" is, then it comes to your DNS which you bought from GoDaddy. The DNS you manage then finds the 
 	"google" part, not only the subdomain. The subdomain also gets resolved easily and gets an IP, and then you will get your request's output on 
 	the screen.
 	
-	There are differen types of records, A , AAAA, CNAME recored, as we mention just ip name with ipv4, its a A record.
-	if you mention same ip with ipv6 then its a AAAA record, and ip with name its a CNAME record.
+	There are differen types of records, A , AAAA, CNAME recored, 
+	as we mention just ip address with ipv4, its a A record.
+	if you mention same ip with ipv6 then its a AAAA record,
+	and ip with name its a CNAME record, like we can configure the name for another name in DNS, we can confihure as magic workd to whole url
+	if we type maginc that will be route to apps.google.com, then it will get ip of that URL, basicelly we can map name to URL.
+	
+### Key Points About CNAME (Conclusion)
+
+1. **CNAME (Canonical Name) is an alias record in DNS.** It makes one domain name point to another domain name.
+2. **CNAME never stores an IP address.** It always points to another hostname.
+3. **The actual IP address is stored in an `A` record or `AAAA` record.**
+4. **Resolution chain example:**
+   maps.company.com → CNAME 'service.company.com' → IP
+5. **CNAME helps avoid repeating the same IP in multiple DNS records.**
+6. **Many subdomains can point to one canonical hostname using CNAME.**
+7. **If the server IP changes, only the `A record` of the canonical hostname needs to be updated.**
+8. **All domains using the CNAME automatically resolve to the updated IP.**
+9. **CNAME is widely used with CDNs, load balancers, and cloud services to abstract infrastructure.**
+10. **Simple rule to remember:**
+	AME = domain → another domain
+	ecord = domain → IP
 	
 CoreDNS: -
 	Specific to k8s only, works under k8s cluster, configured to help pods to find the ips or service names of other pods and services.
@@ -675,3 +697,146 @@ Ingress in k8s: -
 	Ingress can manage comming trafic can confiure port to the external world.
 	
 	Nginx can be used as loadbalencer
+	
+	
+	
+	
+User
+ │
+ │  ping maps.google.com
+ ▼
+Ping Program (user space)
+ │
+ ▼
+libc resolver
+ │
+ ▼
+/etc/nsswitch.conf
+ │
+ │ order: files → dns
+ ▼
+/etc/hosts
+ │
+ │
+ ▼
+DNS Resolver
+ │
+ ▼
+/etc/resolv.conf
+ │
+ │ nameserver (ISP / 8.8.8.8 etc)
+ ▼
+DNS Query Sent
+UDP port 53
+ │
+ ▼
+Recursive DNS Resolution Begins
+			   │
+	     	   ▼
+               .
+           (Root DNS)
+               │
+     ┌─────────┼─────────┐─────────────┐
+    .org     .com      .edu			 .gov
+               │
+               ▼
+             .com
+               │
+               ▼
+           google.com
+               │
+       ┌───────┼────────┐
+      maps    drive     mail
+       │
+       ▼
+maps.google.com
+ │
+ ▼
+Authoritative DNS returns IP
+Example: 142.xxx.xxx.xxx
+ │
+ ▼
+IP returned to ping program
+ │
+ ▼
+Routing Table Lookup
+(ip route)
+ │
+ ▼
+Gateway Selected
+Example: 192.168.1.1
+ │
+ ▼
+ARP Lookup
+ │
+ │ If MAC unknown
+ ▼
+ARP Broadcast
+"Who has 192.168.1.1?"
+ │
+ ▼
+Router replies with MAC
+ │
+ ▼
+Ethernet Frame Created
+ │
+ │
+ ├─ Destination MAC
+ ├─ Source MAC
+ └─ IP Packet
+        └─ ICMP Echo Request
+ │
+ ▼
+Queueing Discipline (qdisc)
+ │
+ ▼
+NIC Driver
+ │
+ ▼
+Network Interface Card
+ │
+ ▼
+Physical Network
+(Ethernet / WiFi)
+ │
+ ▼
+Router
+ │
+ ▼
+Internet Routers
+ │
+ ▼
+Google Network
+ │
+ ▼
+maps.google.com Server
+ │
+ ▼
+Server Kernel receives packet
+ │
+ ▼
+ICMP Echo Reply generated
+ │
+ ▼
+Reply travels back through Internet
+ │
+ ▼
+Your Router
+ │
+ ▼
+NIC receives packet
+ │
+ ▼
+Linux Kernel Networking Stack
+ │
+ ▼
+ICMP Reply matched (id + seq)
+ │
+ ▼
+Delivered to ping process
+ │
+ ▼
+Ping calculates RTT
+ │
+ ▼
+Terminal prints result

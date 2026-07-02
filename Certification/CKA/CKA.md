@@ -1,8 +1,12 @@
 CKA reference to the course https://github.com/kodekloudhub/certified-kubernetes-administrator-course
 https://notes.kodekloud.com/docs/CKA-Certification-Course-Certified-Kubernetes-Administrator/Introduction/Course-Introduction
 
-
+some of the configuration files are at "/etc/kubernetes/manifests/"
 Execute any command in pod without going inside the pod 
+
+NOTE: - if you want to use "--command" option in kubectl command then always use at the end, even --dry-run even the -o yaml shoule be before that command. and to give any command you will need to add --, ex. "$ kubectl run static-busybox --image=busybox -n default --dry-run=client -o yaml --command -- sleep 1000"
+
+You can ssh to node and go to that node just by ssh <node name or IP>, you will get IP as "kubectl get nodes -o wide."
 
 "$ k exec <pod-name> -- <command>"
 example 
@@ -15,7 +19,7 @@ If you want to specify the container inside the pod then use below command.
 you can use "k" insted of "kubectl"
 
 $ kubectl get all
-$ kubectl replace --foce -f pod.yaml -> delete exesting pod and will create new from same file.
+$ kubectl replace --foce -f pod.yaml -> delete exesting pod and create new from same file.
 
 you can create dir(ashu) then put all your yaml files there, then go to parent dir(../) then then run
 "$ k create -f ashu/" 
@@ -28,14 +32,28 @@ master node has control plain component by which it can manage multiple worked n
 kubelet is present on all the nodes and it always listen to master node and manage the node.
 also master node fetches the data from kubelet to monitor nodes and container .
 
-recent version from 1.24 version of k8s docker is not supported.
+recent version from 1.24 version of k8s "docker" is not supported.
 instead it supports containerD, very similar to docker
+check more on containerD in here "https://github.com/containerd/containerd"
 so instead of "docekr ps -a" you will need to use "nerdctl ps -a" replace "docker" with "nerdctl".
 
 ETCD (etcd cluster): -
 
-	is a distributed reliable key value store, it stores data in key and value format.
-	when you run any "kubectl get" command that time data get read from ETCD and then present to you.
+	etcd is a distributed and reliable key-value store used by Kubernetes to store cluster data in key-value format. 
+	When you run a command such as kubectl get pods, the request goes to the Kubernetes API Server, and the API Server reads 
+	the required data from etcd (or from its cache) and returns the result to you. etcd stores information about Pods, Deployments, 
+	Services, ConfigMaps, Secrets, Nodes, and the overall cluster state.
+	
+	An etcd cluster is a group of one or more etcd servers that work together to store Kubernetes cluster data reliably. 
+	It keeps critical information such as Pods, Deployments, Services, Secrets, ConfigMaps, and cluster state. In a multi-node etcd 
+	cluster, the members synchronize data using the Raft consensus algorithm, ensuring consistency even if some nodes fail. 
+	Kubernetes API Server reads from and writes to etcd to maintain the desired state of the cluster. Having multiple etcd members 
+	provides high availability and protects against data loss if a server goes down.
+	
+	Commands: -
+	to run any command with etcd you will need to export "ETCDCTL_API" veriable to "3", with this veriable etcd understand to use its version 3 by default its a 2.2 or something.
+	Then to ecexute ant etcd command we need server ip and port (end point), ca cert, server cert and server key. so command become as "$ etcdctl snapshot save <backup-file> --endpoints=<endpoint> --cacert=<ca.crt> --cert=<server.crt> --key=<server.key>"
+	Why we need to specify these details? usually the ETCD server talk to api-server and api-server take care of authentation, but as we are manually requesting ETCD cluster, we need to take care of authentation as well, so we need to provide the details.
 	
 kube-apiserver: -
 
@@ -134,10 +152,12 @@ Replicaset: -
 	
 	replication controller is older technology and got replaced with replicaset.
 	in replicationcontroller "selector" is not mandatory but in Replicaset it is mandatory.
-	Replicaset can manage pods which are created by the replicaset itself and also the pods matched with spec:selector:matchLabels, no matter when you create the pod, but this not happens with replicationcontroller.
+	Replicaset can manage pods which are created by the replicaset itself and also the pods matched with spec:selector:matchLabels, 
+	no matter when you create the pod, but this not happens with replicationcontroller.
 	
 
-	KEEP IN MIND:- in ReplicaSet you have to match the labels whatever you are giving in spec:template:labels to spec:selector:matchLabels, otherwise you will get error.
+	KEEP IN MIND:- in ReplicaSet you have to match the labels whatever you are giving in spec:template:labels to 
+	spec:selector:matchLabels, otherwise you will get error.
 
 	replicationcontroller: -
 		$ kubectl get replicationcontroller
@@ -205,7 +225,7 @@ Replicaset: -
 			  app: myapp-pod
 
 	how to scale-up and scale-down the replicas 
-		1. change the number in file and run "kubectl replace -f <file-name>" 
+		1. change the number of replicas in file and run "kubectl replace -f <file-name>" 
 		2. there is command to scale the pods, "kubectl scale --replicas=10 -f <file-name>" (will not change any file, but still you will have the changes).
 			
 Deployment: -
@@ -751,9 +771,8 @@ kubectl apply command: -
 	
 Sheduling: -
 
-	So sheduller map the pod to node, not oly that all the things like whcich namespace, which node all those things,
-	so If default sheduller is of then pod will be in peding state.
-	so you can manually assigne the pod to node, no need for sheduler, use "nodeName" only in spec:nodeName: <node name>
+	So sheduller map the pod to node, not only that, all the things, like whcich namespace, which node all those things.
+	So you can manually decide which pod to which node, for that use "nodeName" only in spec:nodeName: <node name>
 	
 	apiVersion: v1
 	kind: Pod
@@ -768,17 +787,21 @@ Sheduling: -
 taint and tolaration: -
 
 	taint is for node and tolaration is for pod.
-	If we set taint (node) and tolaration (pod) it will alwasy place pod in that node or vice varsa.
-	basicelly with taint and tolaration we can adjust the pod and nodes relation.
+	If we set taint (node) and tolaration (pod) it will allow pod in that node. basicelly with taint and tolaration we can adjust the which pod goes on whcih node.
 	
 	for node:
-	kubectl taint nodes node-name key=value:taint-effect
+	$ kubectl taint nodes node-name key=value:taint-effect
+	$ kubectl taint nodes node01 app=blue:NoSchedule 
+	NoSchedule = Do not allow pods to be scheduled on this node unless they have a matching toleration as app=blue.
+	So now only pods with app=blue will get to place on node01
 	
-	three kind of tolorations are there 1. NoSchedule
+	three kind of tolorations effect are there 1. NoSchedule
 										2. PreferNoSchedule
 										3. NoExecution
-										
-	kubectl taint nodes node01 app=blue:NoSchedule -> for node
+
+	NoSchedule       → If pod does not mactches the tain and toleration then no schedule
+	PreferNoSchedule → Try another node first; if none is suitable, placing it here is okay.
+	NoExecute        → Don't place new Pods here, and remove (delete) (evict) existing Pods that don't have the matching toleration.
 	
 	apiVersion: v1
 	kind: Pod
@@ -799,14 +822,10 @@ taint and tolaration: -
 		  
 		NOTE: - if you compare the spec:tolerations to kubectl taint command, it is exactly the same.
 		app, equal, blue, NoSchedule exactly same on command and yaml file.
-		NoSchedule = Do not allow pods to be scheduled on this node unless they have a matching toleration.
-		toleration = app=blue
-		
-		So now only pods with app=blue will get to place on node01
 		
 		command to remove taint from node
 		kubectl taint nodes <node-name> node-role.kubernetes.io/control-plane:NoSchedule-
-		to remoce the taint the command is exactly the same, just add - at the end.
+		to remove the taint the command is exactly the same, just add - at the end.
 		I got this "node-role.kubernetes.io/control-plane:NoSchedule" from "kubectl describe node <node name>."
 		you will get one line as taint, just copy that and add - at then end then effect will be removed.
 		
@@ -824,30 +843,73 @@ Node selector and node Affinity : -
 	  - image: nginx
 		name: nginx
 	  nodeSelector:			# nodeSelector key pare value comes from node
-		size: Large			# when node is created this labes are given to that node, so that large pod get assign to large node.
+		size: abc			# when node is add this labes, pod get assigned to abc node.
 		
 	you can label the node as well with below command: -
-	"$ kubectl label nodes node01 size=Large"
+	"$ kubectl label nodes node01 size=abc"
 	
-	Affinity: -
+Affinity: -
+
+	requiredDuringSchedulingIgnoreDuringExecution
+	preferredDuringSchedulingIgnoreDuringExecution
 	
-		requiredDuringSchedulingIgnoreDuringExecution
-		preferredDuringSchedulingIgnoreDuringExecution
-		
-		Syntax for this is nor easy to remember, you can refer k8s documentation.
-		https://kubernetes.io/docs/home/
-		
-	we can use Taint and Tolaration, like label the node and pod.
-	but there is chance that pod might will endup in other node where node is not labeled
-	so to come over this issue we have Affinity, so that exact pod will endup in exact node.
+	Syntax for this is not easy to remember, you can refer k8s documentation.
+	https://kubernetes.io/docs/home/
 	
-Resource limite: -
+	In node selector we can mention only one label, and if we need to add multiple lables then we can use Affinity
+	
+	we can use Taint and Tolaration, like label the node and pod. and Taint and Tolaration just allows pod on node, not assign the pod to the node also there is chance that pod might will endup in other node where node dont have taint so to come over this issue we have Affinity, so that exact pod will endup in exact node.
+	
+	| Operator       | Meaning                                                  |
+	| -------------- | -------------------------------------------------------- |
+	| `In`           | Label value **must be one of** the specified values.     |
+	| `NotIn`        | Label value **must not be** one of the specified values. |
+	| `Exists`       | The label key **must exist** (value doesn't matter).     |
+	| `DoesNotExist` | The label key **must not exist**.                        |
+	| `Gt`           | Label value **must be greater than** the given integer.  |
+	| `Lt`           | Label value **must be less than** the given integer.     |
+
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: nginx
+	spec:
+	  affinity:
+		nodeAffinity:
+		  requiredDuringSchedulingIgnoredDuringExecution:
+			nodeSelectorTerms:
+			- matchExpressions:
+			  - key: disktype
+				operator: In
+				values:
+				- ssd            
+	  containers:
+	  - name: nginx
+		image: nginx
+		imagePullPolicy: IfNotPresent
+
+
+	
+Resource and limite: -
 
 	By default k8s dont have resource limits.
 	so in resource limit we set min and max limits to the pod and container.
-	for CPU: - if pod start using more CPU than limit then k8s will throtel that pod and get back to its limit.
+	for CPU: - if pod start using more CPU than limiter from k8s will throtel that pod and get back to its limit.
 	for MEMORY: - if pod start using more memory, then pod will be terminited with error out of memory.
 	
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: my-pod
+	spec:
+	  containers:
+	  - name: my-container
+		image: myimage
+		resources:
+		  requests:
+			cpu: 2
+			memory: "4Gi"
+				
 	apiVersion: v1
 	kind: Pod
 	metadata:
@@ -865,10 +927,9 @@ Resource limite: -
 	  - name: pod-resources-demo-ctr-1
 		image: nginx
 
-	If you dont set resource on pod then pod can consume all the resource of node and then node not able to host any other pod.
-	If you only set limits and no-request then ks automatecly set no-request as same as limits so limits=no-request, in this case.
-	If you only set request then you will get required limite and max till node get full, but other pod get on that same node and 
-		requested and limited some space then pod 2 will get as requested and pod 1 might will not get enough space only the requested.
+	If you dont set resource, then pod might consume all the resource of node and then node not able to host any other pod.
+	If you only set limits and dident mention request then ks automatecly set request as same as limits so limits=request. 
+	If you only set request then you will get required limite and max till node get full, but other pod get on that same node and requested and limited some space then pod 2 will get as requested and pod 1 might will not get enough space only the requested.
 	
 	exactly smae for memory above containt is for CPU.
 	for memory if other pod need to access the memory from same node and it dont have much space, then we need to kill the pod
@@ -885,12 +946,12 @@ Resource limite: -
 			  name: cpu-resource-constraint
 			spec:
 			  limits:
-			  - default: 					# This values are for user, if he forgot to add, then by default used this value
-				  cpu: 500m					# default limits
-				defaultRequest:				# default requests
+			  - default: 		  #This values are for user, if he forgot to add, then by default used this value
+				  cpu: 500m		  #default limits
+				defaultRequest:	  #default requests
 				  cpu: 500m
-				max:						# but min and max values are to limit, like if user tried to excced there values k8s will reject the pod.
-				  cpu: "1"					# max and min define the limit range
+				max:			  #min and max values are to limit, like if user tried to excced there values k8s will reject the pod.
+				  cpu: "1"		  #max and min define the limit range
 				min:
 				  cpu: 100m
 				type: Container
@@ -902,16 +963,19 @@ Resource limite: -
 			  name: memory-resource-constraint
 			spec:
 			  limits:
-			  - default: 					# This values are for user, if he forgot to add, then by default used this value
-				  memory: 1Gi				# default limits
-				defaultRequest:				# default requests
+			  - default: 		  #This values are for user, if he forgot to add, then by default used this value
+				  memory: 1Gi	  #default limits
+				defaultRequest:	  #default requests
 				  memory: 1Gi
-				max:						# but min and max values are to limit, like if user tried to excced there values k8s will reject the pod.
-				  memory: 1Gi				# max and min define the limit range
+				max:			  #min and max values are to limit, like if user tried to excced there values k8s will reject the pod.
+				  memory: 1Gi	  #max and min define the limit range
 				min:
 				  memory: 500Mi
 				type: Container
 
+
+		LimiteRange is created in NameSpace, not on node, or on cluster. also you can control on what to add limites, like on container on pod or on volumes, mention in LimitRange:spec:limits:type: Container, Pod, PersistentVolumeClaim
+		
 		There is another varation is ResourceQuota, but it is for namespace level object, you can check below.
 
 		| Feature          | LimitRange                        | ResourceQuota                                 |
@@ -922,40 +986,46 @@ Resource limite: -
 		| Prevents misuse? | Yes (bad container configs)       | Yes (resource overuse in namespace)           |
 		| Example          | Max 1 CPU per container           | Max 10 CPUs total for all pods in a namespace |
 
+
+	ResourceQuota: -
+		you can create ResourceQuota for each namespace, so that namespace be limited to use it hardware.
+		
+		apiVersion: v1
+		kind: ResourceQuota
+		metadata:
+		  name: ashu-resource-quota
+		  namespace: ashu
+		spec:
+		  hard:
+			pods: "10"
+			requests.cpu: "4"
+			requests.memory: "5Gi"
+			limits.cpu: "10"
+			limits.memory: "10Gi"
+
 DaemonSet: -
 
-	DaemonSet create one pod per node, like if you create deamonset it will create node on all the nodes, no matter how may pods are there.
-	if node get deleted or down then that pod will also destoried.
-	DaemonSet use the node affinity and Default scheduler, land exact pod on exact node.
+	DaemonSet create one pod per node, like if you create deamonset it will create pod on all the nodes, no matter how may nodes are there.	if node gets deleted or down then that pod will also destoried.	DaemonSet use the node affinity and Default scheduler to land on exact node.
 	
 	Mostely it is used to nomitoring purpose, requirement is something like monitoring or counting the nodes.
 	
-	there is no directly way to create DaemonSet, you have to rigth yaml file.
-	but there is work around, you can create the Deployment and then make changes accrounding to DaemonSet, 
-	you need to change the kind and replicas only, also you can refer the documentation from k8s docs.
+	there is no directly way to create DaemonSet like "$k create DaemonSet", you have to rigth yaml file. you can create DaemonSet as the Deployment just change the kind to DaemonSet and dont mention the replicas, also you can refer the documentation from k8s docs.
 	
 StaticPod: -
 
-	If you place the file at /etc/kubernetes/manifest location, k8s will sautomaticelly will create the pod.
-	that pods called as static pod.
-	
-	IF you the static pod on your cluster you can identify it but checing the name of pod.
-	pod will have the name of node at the end of pod name.
-	one more method is there, you can check the yaml file of that pod "kubectl get pod <pod name> -n <name space> -o yaml"
-	then you can check for "owerReference", in kind you will get node, if that pod is static pod.
-	Otherwise it will be something like ReplicaSet or Deployment.
-	
+	If you place the pod.yaml file at /etc/kubernetes/manifest location, kubelet will automaticelly will create the pod. that kind pods called as static pod, Static pod alwas has kind as Node (kind: Node) in "ownerReferences:"
+	Even if the whole cluster is down, still you can create the pod, just put the pod.yaml at above location, and kubelet will make sure that, pod is always allive.
+	You can identify the static pod on your cluster, pod will have the name of node at the end of pod name.
+	Why we need the static pod, conside whole cluster is down and now you want to restart automatelly, so you can create one pod for that task, to load or install whole cluster again wothout human touch.
 	you can check the k8s configuration file at /var/lib/kubelet/config.yaml
 	
-	NOTE: - if you want to use "--command" option in kubectl command then always use at the end, even --dry-run shoule be before that command.
-			it is not mandatary to have yaml of static file in /etc/kubernetes/manifest, is its not there then you can check "/var/lib/kubelet/config.yaml"
-			you will get the folder in here. named as "staticPodPath:"
-			And you can ssh to node and go to that node just by ssh <node name or IP>, you will get IP as "kubectl get nodes -o wide."
+	what is diff in static pod and deployment so static pod is managed by the kubelet and deployment is managed by the daemon controller
+	CoreDNS, kube-proxy cant be deployed as static pod.
+	it is not mandatary to have yaml of static pod in /etc/kubernetes/manifest, which Dir is assigned for static pod is mentioned here "/var/lib/kubelet/config.yaml" as "staticPodPath: /etc/kubernetes/manifests", you will get the folder in here, you can place the yaml file in that path.
 			
-
 	Create a static pod named static-busybox that uses the busybox image , run in the default namespace and the command sleep 1000
 	
-	$ kubectl run static-busybox --image=busybox -n default --dry-run=client -o yaml --command -- sleep 1000
+	$ kubectl run static-busybox --image=busybox -n default --dry-run=client -o yaml --command -- sleep 1000 > /etc/kubernetes/manifests/pod.yaml
 		apiVersion: v1
 		kind: Pod
 		metadata:
@@ -978,6 +1048,7 @@ StaticPod: -
 		
 PriorityClass: -
 
+	There is no kubectl create priorityclass (or k create pc) command.
 	Default prority value is 0.
 	
 	apiVersion: scheduling.k8s.io/v1
@@ -985,11 +1056,11 @@ PriorityClass: -
 	metadata:
 	  name: high-priority
 	value: 1000000				 				    	# There is range for this vlaue you can google it.
-	globalDefault: true / false          			   	# This value will give high-priority to all the pods created
-	preemptionPolicy: PreemptLowerPriority / Never		# Default is "PreemptLowerPriority", that means it will kill the lower prority and get that place.
-														# and in never, it will wait to get sapce and then place itself according to priority.		
-
-
+	globalDefault: true / false          			   	# This value will give high-priority to resource in whole cluster
+	preemptionPolicy: PreemptLowerPriority / Never		
+	# Default is "PreemptLowerPriority", that means it will kill the lower prority and get that place.
+	# and in never, it will wait to get sapce and then place itself according to priority.		
+	
 	Pod example used with PriorityClass with above PriorityClass
 
 	apiVersion: v1
@@ -1004,9 +1075,10 @@ PriorityClass: -
 		image: nginx
 	  priorityClassName: high-priority
 
-kubeschedulerConfiguration: -
-
-	k8s is highly extensible, you can create your won scheduler.
+multiple scheduler: -
+	
+	check here https://kubernetes.io/docs/tasks/extend-kubernetes/configure-multiple-schedulers/
+	k8s is highly extensible, you can create your own scheduler.
 	If you check k8s configuration file at "/etc/kubernetes/manifests/kube-scheduler.yaml", you will see "--kubeconfig=/etc/kubernetes/scheduler.conf"
 	this is default scheduler configuration file.
 	If you want your scheduler, you can point the location of your configuration file (my-schedular.yaml) in this option "--kubeconfig=/etc/kubernetes/scheduler.conf". 
@@ -1024,9 +1096,7 @@ kubeschedulerConfiguration: -
 	with kubeadm most of the component are deployed as either pod or deployment within the k8s cluster.
 	so we will try to create scheduler with pod.
 	
-	The differnce in scheduling "scheduler as pod" and "configuring it in k8s configuration (in /etc/kubernetes/manifests/kube-scheduler.yaml here)" is, 
-	instead of configuring it in k8s configuration just configure it in pod.yaml file (you have to write pod.yaml file), 
-	in both the cases you have to write "my-schedular.yaml".
+	The differnce in scheduling "scheduler as pod" and "configuring it in k8s configuration (in /etc/kubernetes/manifests/kube-scheduler.yaml here)" is, instead of configuring it in k8s configuration just configure it in pod.yaml file (you have to write pod.yaml file), in both the cases you have to write "my-schedular.yaml".
 
 	Now, dont get confused with pod and schedular, like both are same level kinds and how we can run one into another.
 	so its not like that, pod is kind and scheduler is service, so we can run the pod as scheduler, even default scheduler also ran as pod check at "/etc/kubernetes/scheduler.conf"
@@ -1072,10 +1142,10 @@ Scheduler profile: -
 	
 	when you try to create pod, pod get allocated to node, befor that 4 sorting happens as below.
 	
-	Scheduling queue			# All the nodes are here with scheduler to get bind with node.
-	Filtering					# Filter out the pods accroding to its priority, resource requirement, taint and tolaration.
-	Scoring						# then schedular score the node according to pod requirents, only high scoring nodes will be left. like there is 4 nodes with 2CPU, 4CPU, 10CPU and 16CPU and pod need 10CPU then 16CPU node will get high score.
-	Binding						# Pod will get binded with high scoring node or will get allocated on that node.
+	Scheduling queue	# All the nodes are here with scheduler to get bind with node.
+	Filtering			# Filter out the pods accroding to its priority, resource requirement, taint and tolaration.
+	Scoring				# then schedular score the node according to pod requirents, only high scoring nodes will be left. like there is 4 nodes with 2CPU, 4CPU, 10CPU and 16CPU and pod need 10CPU then 16CPU node will get high score.
+	Binding			    # Pod will get binded with high scoring node or will get allocated on that node.
 	
 	I think this video is not that important so skipping it, all related to scheduling queue, in detailed video.
 	https://ibm-learning.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/14295628#overview
@@ -1107,14 +1177,11 @@ Admission Controllers: -
 	
 	kubectl -> kubelete -> apiserver -> authentation -> autherization -> Admission Controllers -> resources get created
 	
-	Admission Controllers as better security magers to how we can use the k8s cluster, aprt from simply validation configurations, can do lot more,
-	like change the request itself or perform addational operation before the pod get created.
+	Admission Controllers as better security magers to how we can use the k8s cluster, aprt from simply validation configurations, can do lot more,	like change the request itself or perform addational operation before the pod get created.
 	
-	Some examples of admisssion controller which run in k8s as default: - AlwaysPullImage -> as name suggest, EventRateLimit -> allwase monitor the limit and try to manage limits, 
-	NameSpaceExist -> If you try to create resource in namespace which dose not exist, it will reject that request. 
+	Some examples of admisssion controller which run in k8s as default: - AlwaysPullImage -> as name suggest, EventRateLimit -> allwase monitor the limit and try to manage limits, NameSpaceExist -> If you try to create resource in namespace which dose not exist, it will reject that request. 
 	
-	NamespaceAutoProvision is not default admisssion controller but you can use it or enable it,
-	it will allow to create namespace if dose not exist.
+	NamespaceAutoProvision is not default admisssion controller but you can use it or enable it, it will allow to create namespace if dose not exist.
 	
 	you can check all the default Admission Controller with "$ kube-apiserver -h | grep enable-admission-plugines" command.
 	In hosted or playground environments online, you don’t have direct access to the control plane, so you can’t run kube-apiserver directly, but on actual server you will be able to run that command.
@@ -1788,34 +1855,28 @@ Cluster maintenence : -
 			https://uklabs.kodekloud.com/topic/practice-test-backup-and-restore-methods-2/
 			
 Security: -
-		
-	When we access the k8s cluster, main part is API-server, so mail line of defeance is api-server, we need to make sure that, who can access and what they do in cluster.
-	for accessing the cluster we should give only ssh key based access, no password or any other access.
+
+	k8s security primitives: -
 	
+		where you are hosting the k8s cluster, that host much disabled root access and password based login, login should work only with ssh (keys). 
+		
+		When we access the k8s cluster, main part is API-server, so main line of defeance is api-server, we need to make sure that, who can access (TLS certificates) and what they do (RBACK) in cluster.	for accessing the cluster we should give only ssh key based access, no password or any other access.
+		
 	Authentation: -
 	
-		so kube-api-server can manage the access to user, if you run any command it will go to api-server then it will authentate then process.
-		so we can access or restrict the access to user, but we dont have something like user, we do have service account, we can create service account
-		and manage it as user, we can user ssh or some certification to process the authentation.
+		so kube-api-server can manage the access to user, if you run any command it will go to api-server then it will authentate 1st then process request. so we can allow or restrict the access to user, but we dont have something like user in k8s cluster, we do have service account, we can create service account insted and manage it as user, we can use ssh or some certification to process the authentation.
 		
 	TLS certificates: -
 	
 		pudhil explanation dobal manane ahe tari pan ekada verify karave: -
-		why do we need certificate, if you are thinking just about the VM, then only VM are not there who reqiures the keys, there are servers and servicas which need the key too
-		and the server we are considering those are not in your reach, you migh need to share to some company or client and those people will configure your key.
-		now while you share the key to server or service or client they need security, that the key is authentated and secure so to do so, we use the certificate,
-		certifiacet have the info of who is owner of that key, the public key, the signed instutate, validity and may more info, 
-		by checing this certifate server manager or clinet get secutity that this key is authentate and suecure and trusted.
-		If certificate is signed by some instutate then it is considered my many more client or serves if it signed by you then that certifiate will be considered 
-		by those who know you and trusts you.
+		why do we need certificate, if you are thinking just about the VM, then only VM are not there who reqiures the keys, there are servers and servicas which need the key too and the server we are considering those are not in your reach, you migh need to share to some company or client and those people will configure your key. now while you share the key to server or service or client they need security, that the key is authentated and secure so to do so, we use the certificate,	certifiacet have the info of who is owner of that key, the public key, the signed instutate, validity and may more info, by checing this certifate server manager or clinet get secutity that this key is authentate and suecure and trusted. If certificate is signed by some instutate then it is considered my many more client or serves if it signed by you then that certifiate will be considered by those who know you and trusts you.
 		
 		Now more about keys: -
-		so while you are access any server your ID and password is sent to server and hacker can access credincianls through the network trafic, so it should be encrrypted.
-		there are two differnet type of encryption
+		so while you are access any server your ID and password is sent to server and hacker can access credincianls through the network trafic, so it should be encrrypted. there are two differnet type of encryption
 		
 		Symmetric encryption: - 
-			encryption happens with a key can decrypted with same key, so if server need to decrypt then key must sent, so again if hacker got key adn encrypte data, he cam decrypt it.
-			not safe 
+			encryption happens with a key can decrypted with same key, so if server need to decrypt then key must need to sent, so again hacker got key and can encrypte your data. not safe 
+		
 		asymmetric encryption: - 
 			so in this method we have public and private key, we need to configure the public key in server and can access through the private key,
 			we must keep and protect the public key.
@@ -3061,7 +3122,7 @@ Kustomize: -
 	so in live project, live project runs in multiple stages like production, staging, deployment. like that all every stage has different configuration,
 	conside ex, there is one deployment in production only one replics is there in staging there are 2 and in deployment there will be 5.
 	
-	so there are 3 dirs then you will always need to keep track of replicas in each yaml and if you miss one of them there is be big issue, so to adress this issue 
+	so there are 3 dirs then you will always need to keep track of replicas in each yaml and if you miss one of them there will be big issue, so to adress this issue 
 	we have kustomize
 	
 	you will need to manage only one yaml file and then Kustomize will take care of all the other path.
@@ -3112,7 +3173,7 @@ Kustomize: -
 	this example only include Deployment but there will be more files in base dir. so it is easy to manage.
 	
 	
-	so it is similatr to helm but helm is too advence, and oveall can manage the whole k8s, but kustomization has limination and limited things.
+	so it is similatr to helm but helm is too advence, and overall can manage the whole k8s, but kustomization has limination and limited things.
 	
 	$ cat ashu/kustomization.yaml				we can add apiVersion and Kind, but not mandatary but adding is good practice.
 		resources:
@@ -3142,7 +3203,7 @@ Kustomize: -
 
 
 	in live project there will be lot of folders and resource files, and you want to crate resource then it will be deficult to create all resource once,
-	this aslo take care by the kustomixation, just create yaml file and mention files, and you are just one command away from create full project.
+	this aslo take care by the kustomization, just create yaml file and mention files, and you are just one command away from create full project.
 	yaml file and dir structor as below.
 
 	$ tree ashu-prod/
@@ -3176,7 +3237,7 @@ Kustomize: -
 	your all resources will be created.
 	
 	
-	Now see there will 100s of files and dir and writing those and maintains will be pain again, so to simplyfy again we can create each dirs Kustomize.yaml file 
+	Now see, there will 100s of files and dir and writing those and maintains will be pain again, so to simplyfy again we can create each dirs Kustomize.yaml file 
 	and mention yaml file, and in parent Kustomize.yaml just mention the dir names, parent Kustomize.yaml will pick up the all child Kustomize.yaml and will create
 	resources accordingly
 	
