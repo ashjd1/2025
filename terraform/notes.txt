@@ -1,0 +1,721 @@
+Terraform
+
+===========================================================
+check about below 
+terraform ftm command
+what is writeonly veriables, "password_wo" writeOnly here in variable in enphemeral?
+vault
+what is teaaform core and where TF_VAR_CORE=TRACE is used?
+Agent execution mode
+
+===========================================================
+
+terraform core and workflow
+
+	Work flow as below.
+	the actual terraform workflow consiste of write plan and apply only
+
+	write        -> write main.tf
+	initialize   -> all the required modules are insatlled here, line if you mention the aws, then aws modules will be insatlled
+	plan         -> review the changes or creating infra
+	apply        -> make reviewed changes.
+	destroy      -> delete what evey you have created.
+	validate     -> check syntex error befor apply or plan command
+
+	## init
+	After the "$ terraform init" command you will see .terraform dir in same dir, in that .terraform DIR you can see provider and modules folders, when you run the init command all the binaries related to the provider and modules with provided versin are download from github or internet to these folders and get accessed from there.
+
+	## plan
+		Its a dry run
+		In plan command you will see what changes will be made in infra, but there will not be any actual change there, you will see added with + updatated with ~ and removed with -
+
+		You can save the plan with "$ terraform plan -out=mynewplan.tfplan" command, and you can use that .tfplan file to apply the changes whenever you want, even the monthes later. "$ terraform apply mynewplan.tfplan".
+
+		when you run the plan command you will get the output as + - and ~ which is resources are added remove and updated, so when you run apply command terraform comapre the desired state and curr state, and create that output.
+
+		by default terraform can manage 10 resource at a time in parallel and you can manage the paraller execution count with -parallelism=5 parameter.
+
+	## apply
+		state filw will be locaed which apply command is running, to prevent the concurrent edits
+
+		No rollback once applied
+
+		apply command 1st runs the plan command, show you what are the changes then you need to conform with "Y", then resources will be created.
+
+		If you have saved the plan commands file "mynewplan.tfplan" then you can run with "$ terraforma apply mynewplan.tfplan" this just skipps the plan process and direcly applied the changes.
+
+		-auto-approve can skip the "yes or no" thing and direcly apply the changes, useful for pipeline
+
+		-input=false -> same thing as above.
+
+		when you use apply command then your resource will be created as per configuration then state file will be created and maintain the record
+
+	## Destroy
+		exactly like apply command, just a reverce, restory command just redtory the created resource,
+
+		you can selectively delet any block, just delete from the tf file and use "apply" command, the configuration which you removed that will be deleted.
+
+		you can delete any resource selectively with -target=<resource name> command.
+		"$ terraform destory -target=<resource name>"
+		when you use the -target option then make sure to remove the configuration from the .tf file as well, because if you run apply command then terraform will create that deleted resource.
+
+		once terraform remove all the resource from cloud then it update the state file and you will have empty state file as there is nothing in cloud from terraform.
+		
+	## validate
+		validate is just to check if the code which you have writtne is valide or is there nay syntex error or not, its not relatade to any king of cloud or state file, just a syntex
+		
+Terraform CLI
+	standard structure of command.
+	"$ terraform <sub command> <option/flag>"
+	"$ terraform      plan    -out=planfile.tfplan"
+	
+	export TF_LOG=DEBUG                 -> to debug any issue terraform have build it loggaging 
+	export TF_VAR_svr_name=prod-db-01   -> to store the veriable insted of hard coding 
+	export AWS_ACCESS_KEY_ID=<ID>       -> to store the access keys
+	
+	$ cat main.tf
+	provider "random" {}
+
+	resource "random_pet" "name" {
+	length = 2
+	}
+
+	output "random_pet_name" {
+	value = "random_pet.name.id"
+	}
+	
+	$ terraform fmt
+	main.tf
+	$ cat main.tf
+	provider "random" {}
+
+	resource "random_pet" "name" {
+	  length = 2
+	}
+
+	output "random_pet_name" {
+	  value = random_pet.name.id
+	}
+	
+	$ terraform init
+	Initializing the backend...
+
+	Initializing provider plugins...
+	- Finding latest version of hashicorp/random...
+	- Installing hashicorp/random v3.9.0...
+	- Installed hashicorp/random v3.9.0 (signed by HashiCorp)
+
+	Terraform has created a lock file .terraform.lock.hcl to record the provider
+	selections it made above. Include this file in your version control repository
+	so that Terraform can guarantee to make the same selections by default when
+	you run "terraform init" in the future.
+
+	Terraform has been successfully initialized!
+
+	You may now begin working with Terraform. Try running "terraform plan" to see
+	any changes that are required for your infrastructure. All Terraform commands
+	should now work.
+
+	If you ever set or change modules or backend configuration for Terraform,
+	rerun this command to reinitialize your working directory. If you forget, other
+	commands will detect it and remind you to do so if necessary.
+
+	$ ls -la
+	total 8
+	drwxr-xr-x. 3 root root   66 Aug  5 18:01 .
+	drwxr-xr-x. 3 root root   19 Aug  3 13:25 ..
+	-rw-r--r--. 1 root root  129 Aug  5 17:59 main.tf
+	drwxr-xr-x. 3 root root   23 Aug  5 18:01 .terraform
+	-rw-r--r--. 1 root root 1229 Aug  5 18:01 .terraform.lock.hcl
+
+	$ terraform validate
+	Success! The configuration is valid.
+	[root@sheep-44 terra]# tree .terraform
+	.terraform
+	└── providers
+		└── registry.terraform.io
+			└── hashicorp
+				└── random
+					└── 3.9.0
+						└── linux_amd64
+							├── LICENSE.txt
+							└── terraform-provider-random_v3.9.0_x5
+
+	6 directories, 2 files
+
+	$ terraform plan -out mypet.tfplan -> mypet.tfplan is created and its a binary, not in human readle form.
+
+	Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+	  + create
+
+	Terraform will perform the following actions:
+
+	  # random_pet.name will be created
+	  + resource "random_pet" "name" {
+		  + id        = (known after apply)
+		  + length    = 2
+		  + separator = "-"
+		}
+
+	Plan: 1 to add, 0 to change, 0 to destroy.
+
+	Changes to Outputs:
+	  + random_pet_name = "random_pet.name.id"
+
+	────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+	Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform apply" now.
+	
+	$ terraform apply
+	random_pet.name: Refreshing state... [id=darling-bream]
+
+	Changes to Outputs:
+	  ~ random_pet_name = "random_pet.name.id" -> "darling-bream"
+
+	You can apply this plan to save these new output values to the Terraform state, without changing any real infrastructure.
+
+	Do you want to perform these actions?
+	  Terraform will perform the actions described above.
+	  Only 'yes' will be accepted to approve.
+
+	  Enter a value: yes
+
+
+	Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+	Outputs:
+
+	random_pet_name = "darling-bream"
+
+	$ terraform destroy
+	random_pet.name: Refreshing state... [id=darling-bream]
+
+	Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+	  - destroy
+
+	Terraform will perform the following actions:
+
+	  # random_pet.name will be destroyed
+	  - resource "random_pet" "name" {
+		  - id        = "darling-bream" -> null
+		  - length    = 2 -> null
+		  - separator = "-" -> null
+		}
+
+	Plan: 0 to add, 0 to change, 1 to destroy.
+
+	Changes to Outputs:
+	  - random_pet_name = "darling-bream" -> null
+
+	Do you really want to destroy all resources?
+	  Terraform will destroy all your managed infrastructure, as shown above.
+	  There is no undo. Only 'yes' will be accepted to confirm.
+
+	  Enter a value: yes
+
+	random_pet.name: Destroying... [id=darling-bream]
+	random_pet.name: Destruction complete after 0s
+
+	Destroy complete! Resources: 1 destroyed.
+
+	$ terraform state list                    -> you can see here how many resource we are managing.
+	random_pet.name
+
+
+	** To use the auto-completion feature on linux you will need to 1st insatll auto completion, use below command.
+	"$ terraform -auto-completion" this command will modify the ~/.bashrc file, then you have to reload the file with 
+	"$ source ~/.bashrc" command.
+
+	** use input variables in main.tf
+	$ cat main.tf
+	provider "random" {}
+
+	resource "random_pet" "name" {
+	  length = var.variable_name
+	}
+
+	output "random_pet_name" {
+	  value = random_pet.name.id
+	}
+
+	variable "variable_name" {
+	  type        = number
+	  description = "hello, how many pets you want?"
+	}
+
+	$ terraform apply -auto-approve
+	var.variable_name
+	  hello, how many pets you want?
+
+	  Enter a value: 5                         -> input 
+
+	random_pet.name: Refreshing state... [id=striking-pika]
+
+	Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+	-/+ destroy and then create replacement
+
+	Terraform will perform the following actions:
+
+	  # random_pet.name must be replaced
+	-/+ resource "random_pet" "name" {
+		  ~ id        = "striking-pika" -> (known after apply)
+		  ~ length    = 2 -> 5 # forces replacement
+			# (1 unchanged attribute hidden)
+		}
+
+	Plan: 1 to add, 0 to change, 1 to destroy.
+
+	Changes to Outputs:
+	  ~ random_pet_name = "striking-pika" -> (known after apply)
+	random_pet.name: Destroying... [id=striking-pika]
+	random_pet.name: Destruction complete after 0s
+	random_pet.name: Creating...
+	random_pet.name: Creation complete after 0s [id=partially-daily-generally-proven-caribou]
+
+	Apply complete! Resources: 1 added, 0 changed, 1 destroyed.
+
+	Outputs:
+
+	random_pet_name = "partially-daily-generally-proven-caribou"
+
+
+Terraform fundamentals
+
+	providers: - is to connect to the any cloud.
+	resources: - which resources you want to create in cloud ex. ec2, s3, vpc, subnet.
+	data:      - retrive the info about the existing recources fron provided cloud. (only read)
+	variables: - make code reusable, so that we can change veriables in each run.
+	output:    - give output on screen as per our requiremnt, like resoucre name or ec2 ip address.
+	terraform: - 
+	modules:   -
+	import:    - pull existing resource in terraform resource (read + manage)
+
+	## providers: -
+		
+		"provider "aws" {}"  -> you must know the name of provider for terraform, if you miss spelled it then it wont works.
+								We can use multiple provider blocks, for multi cloud platform
+								Every provider has different configuration, for that you can refer then documentation
+			
+		In the multi cloud provider, you can name each provider as alias, and you can use in resource block with provider name as providerName.aliasName, then the resource will get created in that provider, refer the below context.
+		
+		provider "aws" {
+		alias  = prod
+		reason = us-east-1
+		}
+		
+		provider "aws" {
+		alias  = dev
+		reason = us-west-1
+		}
+		
+		resource "aws_s3" "dev_s3" {
+		provider = aws.prod            -> you can create multiple alias in one cloud and use as per ur requirement
+		buckert  = "ashu_in_bucket"
+		}
+	
+	## Resources
+		Resource is what you want to create on infra in realworld, just mention in that block.
+				
+		resource "github_repository" "git-repo"{
+		name = "check-connection"
+		visibility = "private"
+		}
+
+		So in abive section "github_repository" is syntext or you can say keyword, where you mention what you want to create. Similarly for aws ec2 instance you can mention "instance" so instance is keyword.
+		
+		"git-repo" is the name which is refering to that block, and that name is refered to only on the configuration files only, noting to do with infra.
+		
+		This this block you can specify the configuration of your resource, how you want to configure it.
+		
+	## Data block
+		Consider there is some resource and configuration is all ready there and you want to make soem changes in infra and for that we need current info about some resources, so to collect the data or info data block is used.
+		
+		data "aws_vpc" "prd" {
+			filter {
+			name = "tag:name"         which parameter you want to search
+			values = ["prd-vpc"]      what is the value of that parameter
+			}
+		}
+		
+		you are asking to search form aws_vpc whose name is prd-vpc, 
+		and we can use this name anywere with "aws_vpc.prd.id or aws_vpc.prd.name" to use this id or name.
+		
+	## Veriable
+		in Actual project there will be multiple stages, like production, QA and deployment, so in each stage we need same configuration but different values, so insted of writng same configuration with differner variables, we have same configuration file, just differnt variables file for each satage and configuration file points to the variable file, so each stage can manage there won environment.
+		
+		variable "name_of_variable" {
+		description = "something meaningful realated to veriable"
+		typr = "what kind of data type are you going to accept."
+		default = "default value"
+		}
+		
+		type of variables:
+			string: - as you know that.
+			numbers: - as you know that its a int.
+			bool: - as you know that.
+			list: - ["t2.micro", "t3.large"] access with index
+			map: - key and value pair, access with key 
+			sets: - similer to list, just two layers are there, not indexed as list and 2nd is only accepts unique vlaues.
+		
+		how to access the veriable, "$ var.name_of_variable" or you want to access the list you can access with "$ var.name_of_variable[0]"
+		
+		There multiple types which can be used to pass the veriable
+		--var, .auto.tfvars, .tfvars, environment variable, default variablea
+		
+	## Output 
+		you can get the info about the resources you have created on terminal with output block.
+
+		output "instance_ip" {
+		description = "provide the IP address"
+		value = aws_instance.web.public_ip
+		}
+		
+	## Terraform
+		in terraform block we can mention which verison we want for terraform, providers and many more, so than we can have consistent verison through out the project, 
+		
+		terraform {
+		required_version = 1.10.0
+		required_providers {
+			aws = {
+			source = "hashicorp/aws"
+			version = 5.87.0
+			}
+		}
+		}
+		
+StateFile: -
+	Terraform statefile is memory of terraform, when you create the any resources, when resource is created successfully that time statefile is updatated, and whenever you make some changes in your code, and apply those chages, terraform compare with the stateFile and current configuration and make the changes.
+	
+	## State Lock file
+	when multiple developers are working on single project, when we use apply command other developer might chaange code, and developer might not get expected result, so when we have state file, terraform creates state lockfile as well, so that we dont mess in configuration.
+	
+	## remote statefile
+	now you know howmuch statefile is iportant, so we need to keep is safe and only accessable to who has creadiblity so we can store at remote location, like s3 bucket, or storage.
+	
+	terraform {
+	backend "s3" { ## store the state file in s3 bucket
+	bucket = <bucket name>
+	key = <path/name-of-stateFile>
+	region = "us-east-1"
+	use_locakfile = true
+	}
+	}
+	
+	we can use the "$ terraform init -migrate-state" command to move to the locak state file to the backend
+	
+	## Managing State file
+		for managing the statefile, terraform gives some command.
+		"$ terraform state list"
+		"$ terraform state show"
+		
+		List command: - lists the all resources which are mentioned and managed in the statefile.
+		Show command: - can be used two different ways "$ terraform show" "$ terraform state show <resoucre-name>", in 1st show command terraform just dumps the whole stateFile with too much details and in human readable format, if you use the state show <resoucre-name> command then terraform gives the all details about that resource in human readable format.
+		
+		check on below commands
+		"$ terraform state mv"
+		"$ terraform state rm"
+		"$ terraform state pull/push"
+	
+	## Terraform Drifft: -
+		Consider a senior where, you have created resource with terraform, but after sometime one developer make changes in resource without touching the terraform configuration.
+		and if you run plan command in this situation, stateFile knows that configuration is not matching with resource, that situation called as state driffet
+		
+		so there are two solutions to solve this either accept changes and make changes in configuration, or run apply command and make changes in resources.
+		
+		so 2nd option is prety stateforward, for 1st option, yuo will need to use "$ terraform apply -refresh-only" command, -refresh-only option make cahnages in current state file, then you will need to configururation from .tf file. 
+		
+		we can use -refresh-only option with apply and plan command, so plan command will just show what will happen, just like plan do, and apply command will actully change the stateFile.
+		
+	## terraform workspace: -
+		you can create terraform workspace with "$ terraform workspace new <workSpaceName>" command.
+		To Switch between workspaces use command "$ terraform workspace select <workSpaceName>"
+		To list all the workspace use "$ terraform workspace list"
+		"show" command will print the current workspace name.
+		"delete", you cant delete the default workspace and current workspace.
+		
+Code Resubality: -
+	## build in functions
+	https://developer.hashicorp.com/terraform/language/functions
+	
+		upper("ash")           			    -> "ASH"
+		min(1,2,3,4,5) 		   			    -> 1
+		join("-", "ash", "jd")			    -> "ash-jd"
+		replace("123-xyz", "xyz", "abc") 	-> "123-abc"
+		parseint("string" "base-of-number") -> you will give the number as string with respective its base, and you will get the number with base 10
+		signum(int)                         -> result only in -1, 0 or 1, just represnt weather number is -ve, +ve or 0
+		
+		join("-", ["ashu", "jd", "new", "chapter"]) -> ashu-jd-new-chapter
+		
+	## Local block
+		if there are veribales which are used multiple time in code, we can create the local block and mentin there
+		locals{
+		cluster_name = "manu"
+		}
+		
+		a = local.cluster_name
+		
+	## count 
+		resource "aws_instance" "web" {
+		  ami           = "ami-xxxxxxxx"
+		  instance_type = "t3.micro"
+
+		  count = 3
+		}
+		
+		So with the count we are telling terraform to how many time execute this block,
+		with current configuration we will have 3 ec2 instaces.
+		We can access the index of count, with "count.index" 
+		
+	## for_each
+		similar to count but more flxible
+		
+		variable "environments" {
+		  type    = set(string)
+		  default = ["dev", "prod"]
+		}
+
+		resource "aws_s3_bucket" "bucket" {
+		  for_each = var.environments
+
+		  bucket = "my-${each.value}-bucket"
+		}
+
+Refactor terraform state
+	changing how a resource is represented/addressed in the Terraform configuration without actually destroying and recreating the real infrastructure.
+	
+	move
+	remove
+	import
+	
+	## moved
+		Only updates the statefile, no extar change.
+		This is used when you want to change the name of any resource.
+		If we direclty rename in tf file then terraform might consider the we have deleted and added new block and terraform also will do same, delete that resource and create new resource. 
+		Moved block comes to used when we reorganise the code, like if we change the some resource code location to different modules or in different dir, then also we need to mention it in modules
+
+		moved{
+		from = aws_instace.server
+		to = aws_instace.web_server
+		}
+		
+		To make it work, we need to remane in tf configuration, then added moved block.
+		
+	## Remove
+		So when you want to unlink the resource from terraform and manage it by yourself, then you can use remove block.
+		When you add the resource details in remove block, then terraform just stop managing that resource, resource still will be there in infra.
+		othervide if you just remove resource code from tf file, terraform delete that resource.
+		
+		removed {
+		  from = aws_subnet.development-def-moved
+		  lifecycle {
+			destroy = false
+		  }
+		}
+		
+	## Import
+		Consider you just started to user terrafrom in your project and now you want to added your all existing infra to tarraform then import block comes in play
+		Also If you make chnages in infra manualy and now want to add to terraform then also it comes to play.
+		
+		resource "aws_vpc" "main"{
+		code
+		}
+		
+		1st command link approch
+		to import we will need to write code about the resource which we want to import the run command.
+		
+		resource "aws_vpc" "main"{
+		code
+		}
+
+		"$ terraform import <resource-keyword>.<resource-name> "<resouce-id-from-infra>" "
+		ex, "$ terraform import aws_vpc.main "vpc-id" "
+		
+		2nd tf configuration
+		import{
+			to = aws_vpc.main
+			id = vpc-id
+ 		}
+		
+		resource "aws_vpc" "main"{
+		code
+		}	
+		then write code about the resource in tf file, then plan and apply  
+		
+		3rd
+		when you are adding the resource code in if file, it not nessecary that you know all the detila about that resource,
+		so with command line you can generat the code with "-generate-config-out=<.tf file>" flag
+		
+		we will need to add the inport block in main.tf file then use flag with plan command, and then terraform will  generate the file with all the details in the tf file, then you can use that config in main.tf  
+		
+Modules: -
+	there are multiple components which will be used again and again for differene componenrt, so we create there module (DIR), and write all the code there, so we can use as per our convinence,
+	for rach module we have there own main veriable and output tf files.
+	there are parent and child modules.
+	
+	There are two types of modules, 1st from source and 2nd one is we wrote it.
+	
+	Modules from official source, check below
+	modules from providers: - https://registry.terraform.io/
+	
+###################################### revise it well ##################################################################
+
+Managing the resource behavior and dependencies
+
+	## depends_on
+		Consider you are deploying the web-server which has back-endpserver which is some sort of DB, so to work the web-server properly we need to configure the DB server 1st then we can deploy the web-server.
+		So we can handel these kind of dependencies we have a "depends_on"
+		
+		there are two type to mention the dependencies, implicite or explicite.
+		in implicite, just mention the block which you need to use, like 
+		"$ subnet_id = <resource>.<name>.<id>"
+		with above line we tell terraform that we need to create this resource for current resouce
+		
+		and in explicite method we add [depends_on] block.
+		
+	## lifecycle{}
+		lifecycle is basecly, instruction for the terraform, what to do what not to do, with this block.
+		we have to mention the lifecycle in any resouce block only.
+		so
+		
+		lifecycle {
+		destroy = false                           		 	 -> will not distroy.
+		ignore_changes = <resource-name>.<part>   		 	 -> will ignore changes made in infra, otherwise it will be reconfigured or recreated. 
+		create_before_destroy = true              		 	 -> will create new resource before destroying 
+		prevent_destroy = true                    		 	 -> will not distroy at any cost.
+		replace_trigger_by [anothre_resource]     		 	 -> will delete and recreate the existing resorce if make changes in "anothre_resource"
+		precondition {condition == var.mv.name == "ashu"     -> before create current resource condition must get satisfied, otherwise error message 
+					  error_message = "name is not matching"    will get printed.
+		}  
+		postcondition										 -> similar to precondition, just check the condtion after resource created.
+		}
+		
+Security Configuration
+	even of we cofigre the secrtets in env vrtiable still while execution the secrtets will endsup in state file or may be in CI/CD logs in other files, so we need to manage it well
+	
+	Sensitive: -
+		So 1s level, very basic
+		Whenever you are creating variable block in tf file, you can add "sensitive = true" to that block, so that when you run terraform plan, apply it will not be displaed on screen or will not carry as it is in log files
+		But still you have hard coded your password in tf file, not good practice.
+		
+		variable "db_pass"{
+		description = "This is pass for DB"
+		type = string
+		sensitive = true
+		}
+		
+	ENV_VERIABLE: -
+		So in above explanation we see how we can mark it as sensitive and hind from logs and CMD, but will we are writing the pass in tf file, not sure.
+		But if you write the pass in "TF_VAR_db_pass", then this will be only accessable to environmet only as its a evn variable, also there is no rish with commit pass directly in github.
+		you can combine the variable section with env variable and make it more secure.
+		Also if your whole setup in on github, then you can use githubs secret to set veriable 
+		"$ TF_VAR_db_pass: ${{ secrets.BD_PASS }}"
+	
+	External secret manager: -
+		there are multiple secret manager availabe which we can diresctly use in tf config, like aws has "aws_secretmanager_secret_versin", also github as its own secret manager, we can use that.
+		We cant use the sensitive parameter in data block.
+		
+		data "aws_secretmanager_secret_version" "db_pass"{
+			secret_id = "production/database/password"								-> we cant use sensitive in data block.
+		}
+		
+		resouce "aws_db_instace" "main" {
+			password = data.aws_secretmanager_secret_version.db_pass.secret_string
+		}
+	
+	
+	| Technique                 | Protects Logs/Output? | Protects State? | Protects Git Commits? | Best For                                       |
+	| ------------------------- | --------------------- | --------------- | --------------------- | ---------------------------------------------- |
+	| **Sensitive Variables**   | ✅ Yes                | ❌ No           | ❌ No                | Hiding output, marking intent                  |
+	| **Environment Variables** | ✨ Partial            | ❌ No           | ✅ Yes               | Local dev, CI/CD, keeping secrets out of files |
+	| **External Sources**      | ✨ Partial            | ⚠️ Reduces      | ✅ Yes               | Production secrets, centralized management     |
+
+
+	Securing State File: -
+		So no matter what you use to store and get sensitive data, it will ends up in state file, max to max we just can make it sensitive and mask the output, still its not a good practice, or good approch, so we have to secure the state file.
+		To sure the state file, we can store it in remote backend, and restract the backends access to responsible people.
+		in remote backend we can enrypt the data and store it, 
+		
+		terraform {
+			backend "s3" {
+				bucket = myBucket
+				enctypt = true 
+			}
+		}
+		
+		With remote backend we have 1st encrypted data 2nd state locking 3rd IAM/RBAC policy, with all three we can secure the state file.
+		
+	Enphemeral values: -
+		Even after all the above techinic we have sensitive data in the statefile, so we can use the enphemeral as true whcih will tell tarraform to omit this parater to record while the plan and apply action.
+		
+		variable "db_pass" {
+			sensitive = true
+			enphemeral = true
+		} 
+		
+		we can use enphemeral in these blocks: - local value, provider, resources, variable, output, provisioner.
+		So we cant use the enphemeral veriables direcly, because while plan and apply command these values gets omited and due to missing values you will get the error.
+		so we have enphemeral block, which will fetch the data at runtime and store in memory, not get stored in statefile and cleared just after the operation is completed.
+		
+		
+		data "aws_secretmanager_secret_version" "db_pass"{
+			secret_id = "production/database/password"
+		}
+	
+		### insted of data block we use enphemeral block, that the only diff here.
+		enphemeral "aws_secretmanager_secret_version" "db_pass"{
+			secret_id = "production/database/password"
+		}
+		
+Debuggeing: -
+	To enable logs we need to set the env variable, which is "TF_LOG=TRACE", then any terraform command will be executed with in detailed logs.
+	
+	levels of verbosity
+	TRACE -> too much details 
+	DEBUG -> -1
+	INFO  -> -1
+	WARN  -> omly warning
+	ERROR -> only error
+	
+	To enable only the core opearation logs we have "TF_LOG_CORE=trace"
+	$ TF_LOG_PROVIDERS=TRACE           -> logs only from the provoder block
+	$ TF_LOG_PATH=/path/to/logFile.log -> to sore the logs in specific file.
+	$ unset TF_LOG                     -> to remove the logenablement
+	
+HCP terraform: -
+	(hashiCorp Cloud Platform)
+	So hcp terraform is, terraform is hodted on hcp, we remotly can access and use it.
+	hcp has everything that you might need to create resource and run the terraform.
+	
+	it manages mostof the things, like state file, tf configuration, access control and many more.
+	
+	you can consider it as running terraform on cloud platform.
+	
+	To connect local macine to hcp, we can use "$ terraform login" command and use token to access.
+	For automation we can use the "$ TF_VAR_app_terraform_io=<token>" env veriable to store the token and loging automateclly.
+	
+	## HCP workspaces
+	
+		there are multiple tyes of workflow 1st version control workflow 
+											2nd CLI driven workflow
+											3rd API driven workflow
+											
+		Execution Modes with whcih we can run the terraform, 
+			1st remote mode, where HCP create temp VMs and runs all terraform command there and send output to terminal console, also if you have the existing statefile, that will be migrated to HCP, and you can checek in states section.
+			
+			2nd local mode, exactly what we were doing that, evering works on local machine and HCP will be used to mmaintain the state and configuration files.
+			
+			3rd agent modes, consider come provate repo and we need to access from terraform, but terraform dont have such permission to access those, so to resolve the issue we have agent we have to host the agent in that private repo and link the terraform to agen then terraform can access the data from private repo.
+			
+			We can configure the execution mode as per the workspace
+			
+	## Project management: -
+		in reallife there are multiple namesapces are used, so to group the projects we have workspace, if we have multiple workspace, then we have a project to group the workspace, of we have too much projects, then we have a organization to group the project.
+		
+	
+	##Variable set: -
+		consider there are some veriables which are need to share in multiple workspace, something like crediantials, or some tokens,
+		to configure such varibables we have a variable sets
+		
+		Global scope    :- applicable for whole organization
+		Project scope   :- project level
+		Workspace scope :- workspace level
