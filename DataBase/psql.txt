@@ -1,0 +1,1018 @@
+PSQL
+
+install the psql the run command  "$ psql" to enter the data base
+"$ \l"                                     to list the all availabel database 
+"$ \c <daatabase name>"                    to connect (change) the existing data base 
+"$ create database test"                   to create new database with test name
+"$ drop database company"                  to delete  database
+"$ drop database test with (force);"       to delete no matter what
+"$ \d <name>"                              to describe table or database
+"$ \dt "                                   to list down the all tables from database.
+
+auto increament data type is "serial", even if you dont mention the vlaue, it will automaticelly takes the next value. 
+
+CREATE TABLE employees(
+emp_id SERIAL PRIMARY KEY,                             PRIMARY KEY dont allow null vlaue
+fname VARCHAR(50) NOT NULL,
+lname VARCHAR(50) NOT NULL,
+email VARCHAR(100) NOT NULL UNIQUE,                    must be UNIQUE evey time.
+dept VARCHAR(50),
+salary DECIMAL(10,2) DEFAULT 30000.00,
+hire_date DATE NOT NULL DEFAULT CURRENT_DATE           if you dont provide the date then it will take the value as DEFAULT CURRENT_DATE
+);
+
+====================================================================================================================================
+
+CRUD operations
+
+Create
+Read
+Update
+Delete
+
+# CREATE DB
+	instadb=# create database persondb;
+	CREATE DATABASE
+
+# CONNECT DB
+	instadb=# \c persondb
+	You are now connected to database "persondb" as user "postgres".
+
+# CREATE TABLE
+	persondb=# create table person (id int, name varchar(100), city varchar(100));
+	CREATE TABLE
+
+# DESCRIBE DB
+	persondb=# \d
+			 List of relations
+	 Schema |  Name  | Type  |  Owner
+	--------+--------+-------+----------
+	 public | person | table | postgres
+	(1 row)
+
+# DESCRIBE TABLE
+	persondb=# \d person
+						  Table "public.person"
+	 Column |          Type          | Collation | Nullable | Default
+	--------+------------------------+-----------+----------+---------
+	 id     | integer                |           |          |
+	 name   | character varying(100) |           |          |
+	 city   | character varying(100) |           |          |
+
+ 
+# insert command 
+	persondb=# insert into person (id, name, city)
+	values (01, 'jamu', 'pune')
+	;
+	INSERT 0 1
+
+# insert command
+	persondb=# insert into person (id, name, city)
+	values (01, 'jamu', 'pune')
+	;
+	INSERT 0 1
+
+# not nessecary to add "(id, name, city)" every time.
+	persondb=# insert into person values
+	(02, 'mamu', 'mimbai'),
+	(03, 'kamu', 'chenai');
+	INSERT 0 2
+
+# read the data
+	persondb=# select * from person
+	persondb-# ;
+	 id | name |  city
+	----+------+--------
+	  1 | jamu | pune
+	  2 | mamu | mimbai
+	  3 | kamu | chenai
+	(3 rows)
+
+# Select specific coloum
+	persondb=# select name from person;
+	 name
+	------
+	 jamu
+	 mamu
+	 kamu
+	(3 rows)
+
+# Select specific multiple coloum
+	persondb=# select id,name from person;
+	 id | name
+	----+------
+	  1 | jamu
+	  2 | mamu
+	  3 | kamu
+	(3 rows)
+
+# update the nmae of city
+	persondb=# update person set city='manu' where id=3;
+	UPDATE 1
+	persondb=# select * from person;
+	 id | name |  city
+	----+------+--------
+	  1 | jamu | pune
+	  2 | mamu | mimbai
+	  3 | kamu | manu
+	(3 rows)
+
+# just chechking if we can select city and change city.
+	persondb=# update person set city='chanu' where city='manu';
+	UPDATE 1
+	persondb=# select * from person;
+	 id | name |  city
+	----+------+--------
+	  1 | jamu | pune
+	  2 | mamu | mimbai
+	  3 | kamu | chanu
+	(3 rows)
+
+# Delete the data
+	persondb=# delete from person where id=03
+	persondb-# ;
+	DELETE 1
+
+	persondb=# select * from person;
+	 id | name |  city
+	----+------+--------
+	  1 | jamu | pune
+	  2 | mamu | mimbai
+	(2 rows)
+
+====================================================================================================================================
+# we have used the "emp_id" as the primary key and serial, so in serial, it generates the +1 evey time, so dont have to give number each time, but we have to set what is curret value, and from where the serial starts, so use below command. 
+
+	bankdb=# select setval('employees_emp_id_seq', 10);
+	 setval
+	--------
+		 10
+	(1 row)
+
+	bankdb=# insert into employees (fname, lname, email) values ('ashu', 'jd', 'raj.sharma@example.com')
+	;
+	ERROR:  duplicate key value violates unique constraint "employees_email_key"
+	DETAIL:  Key (email)=(raj.sharma@example.com) already exists.
+
+# So now what happned here, one insert is failed but this command consumed the +1 serial, we set current value to 10, 11 is consumed, but dident replacted in table because whole query is broped bue to some errors.
+
+	bankdb=# insert into employees (fname, lname, email) values ('ashu', 'jd', 'ashu.jd@example.com');
+	INSERT 0 1
+
+#now command is succeded, but in serial 11 +1 so row added with 12, check table.
+
+	bankdb=# select * from employees;
+	 emp_id | fname  | lname  |          email           |   dept    | salary | hire_date
+	--------+--------+--------+--------------------------+-----------+--------+------------
+		  1 | Raj    | Sharma | raj.sharma@example.com   | IT        |  50000 | 2020-01-15
+		  2 | Priya  | Singh  | priya.singh@example.com  | HR        |  45000 | 2019-03-22
+		  3 | Arjun  | Verma  | arjun.verma@example.com  | IT        |  55000 | 2021-06-01
+		  4 | Suman  | Patel  | suman.patel@example.com  | Finance   |  60000 | 2018-07-30
+		  5 | Kavita | Rao    | kavita.rao@example.com   | HR        |  47000 | 2020-11-10
+		  6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing |  52000 | 2020-09-25
+		  7 | Neha   | Desai  | neha.desai@example.com   | IT        |  48000 | 2019-05-18
+		  8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        |  53000 | 2021-02-14
+		  9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   |  61000 | 2018-12-03
+		 10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing |  50000 | 2020-04-19
+		 12 | ashu   | jd     | ashu.jd@example.com      |           |  30000 |
+	(11 rows)
+
+# see below I ran multiple failed entries, now checl the emp_id.
+
+	bankdb=# insert into employees (fname, lname, email) values ('ashu', 'jd', 'ashu.jd@example.com');
+	ERROR:  duplicate key value violates unique constraint "employees_email_key"
+	DETAIL:  Key (email)=(ashu.jd@example.com) already exists.
+	bankdb=# insert into employees (fname, lname, email) values ('ashu', 'jd', 'ashu.jd@example.com');
+	ERROR:  duplicate key value violates unique constraint "employees_email_key"
+	DETAIL:  Key (email)=(ashu.jd@example.com) already exists.
+	bankdb=# insert into employees (fname, lname, email) values ('ashu', 'jd', 'ashu.jd@example.com');
+	ERROR:  duplicate key value violates unique constraint "employees_email_key"
+	DETAIL:  Key (email)=(ashu.jd@example.com) already exists.
+
+	bankdb=# insert into employees (fname, lname, email) values ('ashu', 'jd', 'ashu.jd@examplee.com');
+	INSERT 0 1
+	bankdb=# select * from employees;
+	 emp_id | fname  | lname  |          email           |   dept    | salary | hire_date
+	--------+--------+--------+--------------------------+-----------+--------+------------
+		  1 | Raj    | Sharma | raj.sharma@example.com   | IT        |  50000 | 2020-01-15
+		  2 | Priya  | Singh  | priya.singh@example.com  | HR        |  45000 | 2019-03-22
+		  3 | Arjun  | Verma  | arjun.verma@example.com  | IT        |  55000 | 2021-06-01
+		  4 | Suman  | Patel  | suman.patel@example.com  | Finance   |  60000 | 2018-07-30
+		  5 | Kavita | Rao    | kavita.rao@example.com   | HR        |  47000 | 2020-11-10
+		  6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing |  52000 | 2020-09-25
+		  7 | Neha   | Desai  | neha.desai@example.com   | IT        |  48000 | 2019-05-18
+		  8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        |  53000 | 2021-02-14
+		  9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   |  61000 | 2018-12-03
+		 10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing |  50000 | 2020-04-19
+		 12 | ashu   | jd     | ashu.jd@example.com      |           |  30000 |
+		 16 | ashu   | jd     | ashu.jd@examplee.com     |           |  30000 |
+	(12 rows)
+	
+====================================================================================================================================
+clauses
+
+where
+	in, not in
+	between
+distinct
+order by
+limit
+like
+
+# where claus
+	bankdb=# select * from employees where emp_id=16;
+	 emp_id | fname | lname |        email         | dept | salary | hire_date
+	--------+-------+-------+----------------------+------+--------+-----------
+		 16 | ashu  | jd    | ashu.jd@examplee.com |      |  30000 |
+	(1 row)
+
+# where claus with condition
+	bankdb=# select * from employees where emp_id>=6;
+	 emp_id | fname  | lname |          email           |   dept    | salary | hire_date
+	--------+--------+-------+--------------------------+-----------+--------+------------
+		  6 | Amit   | Gupta | amit.gupta@example.com   | Marketing |  52000 | 2020-09-25
+		  7 | Neha   | Desai | neha.desai@example.com   | IT        |  48000 | 2019-05-18
+		  8 | Rahul  | Kumar | rahul.kumar@example.com  | IT        |  53000 | 2021-02-14
+		  9 | Anjali | Mehta | anjali.mehta@example.com | Finance   |  61000 | 2018-12-03
+		 10 | Vijay  | Nair  | vijay.nair@example.com   | Marketing |  50000 | 2020-04-19
+		 12 | ashu   | jd    | ashu.jd@example.com      |           |  30000 |
+		 16 | ashu   | jd    | ashu.jd@examplee.com     |           |  30000 |
+	(7 rows)
+
+# where claus with boolien condition
+	bankdb=# select * from employees where dept='IT' or dept='HR';
+	 emp_id | fname  | lname  |          email          | dept | salary | hire_date
+	--------+--------+--------+-------------------------+------+--------+------------
+		  1 | Raj    | Sharma | raj.sharma@example.com  | IT   |  50000 | 2020-01-15
+		  2 | Priya  | Singh  | priya.singh@example.com | HR   |  45000 | 2019-03-22
+		  3 | Arjun  | Verma  | arjun.verma@example.com | IT   |  55000 | 2021-06-01
+		  5 | Kavita | Rao    | kavita.rao@example.com  | HR   |  47000 | 2020-11-10
+		  7 | Neha   | Desai  | neha.desai@example.com  | IT   |  48000 | 2019-05-18
+		  8 | Rahul  | Kumar  | rahul.kumar@example.com | IT   |  53000 | 2021-02-14
+	(6 rows)
+
+	bankdb=# select * from employees where dept='IT' and salary < 50000;
+	 emp_id | fname | lname |         email          | dept | salary | hire_date
+	--------+-------+-------+------------------------+------+--------+------------
+		  7 | Neha  | Desai | neha.desai@example.com | IT   |  48000 | 2019-05-18
+	(1 row)
+
+# where with in and not in
+
+	bankdb=# select * from employees where dept in ('Marketing','HR','IT');
+	 emp_id | fname  | lname  |          email          |   dept    | salary | hire_date
+	--------+--------+--------+-------------------------+-----------+--------+------------
+		  1 | Raj    | Sharma | raj.sharma@example.com  | IT        |  50000 | 2020-01-15
+		  2 | Priya  | Singh  | priya.singh@example.com | HR        |  45000 | 2019-03-22
+		  3 | Arjun  | Verma  | arjun.verma@example.com | IT        |  55000 | 2021-06-01
+		  5 | Kavita | Rao    | kavita.rao@example.com  | HR        |  47000 | 2020-11-10
+		  6 | Amit   | Gupta  | amit.gupta@example.com  | Marketing |  52000 | 2020-09-25
+		  7 | Neha   | Desai  | neha.desai@example.com  | IT        |  48000 | 2019-05-18
+		  8 | Rahul  | Kumar  | rahul.kumar@example.com | IT        |  53000 | 2021-02-14
+		 10 | Vijay  | Nair   | vijay.nair@example.com  | Marketing |  50000 | 2020-04-19
+	(8 rows)
+
+
+	bankdb=# select * from employees where dept not in ('Marketing','HR','IT');
+	 emp_id | fname  | lname |          email           |  dept   | salary | hire_date
+	--------+--------+-------+--------------------------+---------+--------+------------
+		  4 | Suman  | Patel | suman.patel@example.com  | Finance |  60000 | 2018-07-30
+		  9 | Anjali | Mehta | anjali.mehta@example.com | Finance |  61000 | 2018-12-03
+	(2 rows)
+
+# between
+	bankdb=# select * from employees where salary between 50000 and 60000;
+	 emp_id | fname | lname  |          email          |   dept    | salary | hire_date
+	--------+-------+--------+-------------------------+-----------+--------+------------
+		  1 | Raj   | Sharma | raj.sharma@example.com  | IT        |  50000 | 2020-01-15
+		  3 | Arjun | Verma  | arjun.verma@example.com | IT        |  55000 | 2021-06-01
+		  4 | Suman | Patel  | suman.patel@example.com | Finance   |  60000 | 2018-07-30
+		  6 | Amit  | Gupta  | amit.gupta@example.com  | Marketing |  52000 | 2020-09-25
+		  8 | Rahul | Kumar  | rahul.kumar@example.com | IT        |  53000 | 2021-02-14
+		 10 | Vijay | Nair   | vijay.nair@example.com  | Marketing |  50000 | 2020-04-19
+	(6 rows)
+
+# distinct
+	bankdb=# select distinct dept from employees;
+	   dept
+	-----------
+
+	 Marketing
+	 Finance
+	 IT
+	 HR
+	(5 rows)
+
+# order by
+	bankdb=# select * from employees order by fname;
+	 emp_id | fname  | lname  |          email           |   dept    | salary | hire_date
+	--------+--------+--------+--------------------------+-----------+--------+------------
+		  6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing |  52000 | 2020-09-25
+		  9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   |  61000 | 2018-12-03
+		  3 | Arjun  | Verma  | arjun.verma@example.com  | IT        |  55000 | 2021-06-01
+		 16 | ashu   | jd     | ashu.jd@examplee.com     |           |  30000 |
+		 12 | ashu   | jd     | ashu.jd@example.com      |           |  30000 |
+		  5 | Kavita | Rao    | kavita.rao@example.com   | HR        |  47000 | 2020-11-10
+		  7 | Neha   | Desai  | neha.desai@example.com   | IT        |  48000 | 2019-05-18
+		  2 | Priya  | Singh  | priya.singh@example.com  | HR        |  45000 | 2019-03-22
+		  8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        |  53000 | 2021-02-14
+		  1 | Raj    | Sharma | raj.sharma@example.com   | IT        |  50000 | 2020-01-15
+		  4 | Suman  | Patel  | suman.patel@example.com  | Finance   |  60000 | 2018-07-30
+		 10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing |  50000 | 2020-04-19
+	(12 rows)
+
+# order by reverse
+	bankdb=# select * from employees order by fname desc;
+	 emp_id | fname  | lname  |          email           |   dept    | salary | hire_date
+	--------+--------+--------+--------------------------+-----------+--------+------------
+		 10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing |  50000 | 2020-04-19
+		  4 | Suman  | Patel  | suman.patel@example.com  | Finance   |  60000 | 2018-07-30
+		  1 | Raj    | Sharma | raj.sharma@example.com   | IT        |  50000 | 2020-01-15
+		  8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        |  53000 | 2021-02-14
+		  2 | Priya  | Singh  | priya.singh@example.com  | HR        |  45000 | 2019-03-22
+		  7 | Neha   | Desai  | neha.desai@example.com   | IT        |  48000 | 2019-05-18
+		  5 | Kavita | Rao    | kavita.rao@example.com   | HR        |  47000 | 2020-11-10
+		 12 | ashu   | jd     | ashu.jd@example.com      |           |  30000 |
+		 16 | ashu   | jd     | ashu.jd@examplee.com     |           |  30000 |
+		  3 | Arjun  | Verma  | arjun.verma@example.com  | IT        |  55000 | 2021-06-01
+		  9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   |  61000 | 2018-12-03
+		  6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing |  52000 | 2020-09-25
+	(12 rows)
+
+# limit
+	#Only 1st three result
+	bankdb=# select * from employees order by fname desc limit 3;
+	 emp_id | fname | lname  |          email          |   dept    | salary | hire_date
+	--------+-------+--------+-------------------------+-----------+--------+------------
+		 10 | Vijay | Nair   | vijay.nair@example.com  | Marketing |  50000 | 2020-04-19
+		  4 | Suman | Patel  | suman.patel@example.com | Finance   |  60000 | 2018-07-30
+		  1 | Raj   | Sharma | raj.sharma@example.com  | IT        |  50000 | 2020-01-15
+	(3 rows)
+
+# like  and ilike
+Starts with 'A': LIKE 'A%'
+Ends with 'A': LIKE '%A'
+Contains 'A': LIKE '%A%'
+Second character is 'A': LIKE '_A%'
+Case-insensitive contains 'john': ILIKE '%john%'
+
+	bankdb=# select * from employees where fname ilike '%A';
+	 emp_id | fname  | lname |          email          | dept | salary | hire_date
+	--------+--------+-------+-------------------------+------+--------+------------
+		  2 | Priya  | Singh | priya.singh@example.com | HR   |  45000 | 2019-03-22
+		  5 | Kavita | Rao   | kavita.rao@example.com  | HR   |  47000 | 2020-11-10
+		  7 | Neha   | Desai | neha.desai@example.com  | IT   |  48000 | 2019-05-18
+	(3 rows)
+
+# selete dept whose name is 2 latter
+
+	bankdb=# select * from employees where dept like '__';
+	 emp_id | fname  | lname  |          email          | dept | salary | hire_date
+	--------+--------+--------+-------------------------+------+--------+------------
+		  1 | Raj    | Sharma | raj.sharma@example.com  | IT   |  50000 | 2020-01-15
+		  2 | Priya  | Singh  | priya.singh@example.com | HR   |  45000 | 2019-03-22
+		  3 | Arjun  | Verma  | arjun.verma@example.com | IT   |  55000 | 2021-06-01
+		  5 | Kavita | Rao    | kavita.rao@example.com  | HR   |  47000 | 2020-11-10
+		  7 | Neha   | Desai  | neha.desai@example.com  | IT   |  48000 | 2019-05-18
+		  8 | Rahul  | Kumar  | rahul.kumar@example.com | IT   |  53000 | 2021-02-14
+	(6 rows)
+
+====================================================================================================================================
+# aggegreates
+	count	
+	sum
+	avg
+	min
+	max
+
+# count
+# what is total numbers for rows in emp_id, 
+# best practice is to use primary key with count
+
+	bankdb=# select count(emp_id) from employees;
+	 count
+	-------
+		12
+	(1 row)
+
+# sum, similarly we can use the avg, min, max.
+	bankdb=# select sum(salary) from employees;
+	  sum
+	--------
+	 581000
+	(1 row)
+
+====================================================================================================================================
+
+# group by
+
+	bankdb=# select dept from employees group by dept;
+	   dept
+	-----------
+
+	 Marketing
+	 Finance
+	 IT
+	 HR
+	(5 rows)
+
+	bankdb=# select dept, count(emp_id) from employees group by dept;
+	   dept    | count
+	-----------+-------
+			   |     2
+	 Marketing |     2
+	 Finance   |     2
+	 IT        |     4
+	 HR        |     2
+	(5 rows)
+
+	bankdb=# select dept, sum(salary) from employees group by dept;
+	   dept    |  sum
+	-----------+--------
+			   |  60000
+	 Marketing | 102000
+	 Finance   | 121000
+	 IT        | 206000
+	 HR        |  92000
+	(5 rows)
+
+====================================================================================================================================
+String functions 
+
+CONCAT, 
+CONCAT_WS WS = with seperator
+SUBSTR
+LEFT, RIGHT
+LENGTH
+UPPER, LOWER
+TRIM, LTRIM, RTRIM
+REPLACE
+POSITION
+STRING_AGG
+
+
+# Concat
+
+	# Concat 1st and last name.
+	bankdb=# select concat(fname, lname) from employees;
+	   concat
+	-------------
+	 RajSharma
+	 PriyaSingh
+	 ArjunVerma
+	 SumanPatel
+	 KavitaRao
+	 AmitGupta
+	 NehaDesai
+	 RahulKumar
+	 AnjaliMehta
+	 VijayNair
+	 ashujd
+	 ashujd
+	(12 rows)
+
+	# concat and show result as fullname 
+	bankdb=# select concat(fname, lname) as fullname from employees;
+	  fullname
+	-------------
+	 RajSharma
+	 PriyaSingh
+	 ArjunVerma
+	 SumanPatel
+	 KavitaRao
+	 AmitGupta
+	 NehaDesai
+	 RahulKumar
+	 AnjaliMehta
+	 VijayNair
+	 ashujd
+	 ashujd
+	(12 rows)
+
+	# show result with emp id
+	bankdb=# select emp_id, concat(fname, lname) as fullname from employees;
+	 emp_id |  fullname
+	--------+-------------
+		  1 | RajSharma
+		  2 | PriyaSingh
+		  3 | ArjunVerma
+		  4 | SumanPatel
+		  5 | KavitaRao
+		  6 | AmitGupta
+		  7 | NehaDesai
+		  8 | RahulKumar
+		  9 | AnjaliMehta
+		 10 | VijayNair
+		 12 | ashujd
+		 16 | ashujd
+	(12 rows)
+
+	# show result as emp id, concat and dept name.
+	bankdb=# select emp_id, concat(fname, lname) as fullname, dept from employees;
+	 emp_id |  fullname   |   dept
+	--------+-------------+-----------
+		  1 | RajSharma   | IT
+		  2 | PriyaSingh  | HR
+		  3 | ArjunVerma  | IT
+		  4 | SumanPatel  | Finance
+		  5 | KavitaRao   | HR
+		  6 | AmitGupta   | Marketing
+		  7 | NehaDesai   | IT
+		  8 | RahulKumar  | IT
+		  9 | AnjaliMehta | Finance
+		 10 | VijayNair   | Marketing
+		 12 | ashujd      |
+		 16 | ashujd      |
+	(12 rows)
+
+# concat with seperator
+	# seperator added to each coloum which you will mention in () between.
+	bankdb=# select emp_id, concat_ws('_', fname, lname) as fullname, dept from employees;
+	 emp_id |   fullname   |   dept
+	--------+--------------+-----------
+		  1 | Raj_Sharma   | IT
+		  2 | Priya_Singh  | HR
+		  3 | Arjun_Verma  | IT
+		  4 | Suman_Patel  | Finance
+		  5 | Kavita_Rao   | HR
+		  6 | Amit_Gupta   | Marketing
+		  7 | Neha_Desai   | IT
+		  8 | Rahul_Kumar  | IT
+		  9 | Anjali_Mehta | Finance
+		 10 | Vijay_Nair   | Marketing
+		 12 | ashu_jd      |
+		 16 | ashu_jd      |
+	(12 rows)
+
+	bankdb=# select emp_id, concat_ws(' ', fname, lname) as fullname, dept from employees;
+	 emp_id |   fullname   |   dept
+	--------+--------------+-----------
+		  1 | Raj Sharma   | IT
+		  2 | Priya Singh  | HR
+		  3 | Arjun Verma  | IT
+		  4 | Suman Patel  | Finance
+		  5 | Kavita Rao   | HR
+		  6 | Amit Gupta   | Marketing
+		  7 | Neha Desai   | IT
+		  8 | Rahul Kumar  | IT
+		  9 | Anjali Mehta | Finance
+		 10 | Vijay Nair   | Marketing
+		 12 | ashu jd      |
+		 16 | ashu jd      |
+	(12 rows)
+
+# Substring
+	# create substring from 1 to 4
+	bankdb=# select substr('ashutosh', 1, 4);
+	 substr
+	--------
+	 ashu
+	(1 row)
+
+#REPLACE
+	# 1st give original word, then which you want to repace, with you you want to replace.
+	bankdb=# select replace('ashutosh', 'ashu', 'jadhav');
+	  replace
+	------------
+	 jadhavtosh
+	(1 row)
+
+	# repalce from dept colum IT to tech
+	bankdb=# select replace(dept, 'IT', 'tech') from employees;
+	  replace
+	-----------
+	 tech
+	 HR
+	 tech
+	 Finance
+	 HR
+	 Marketing
+	 tech
+	 tech
+	 Finance
+	 Marketing
+	(12 rows)
+	
+#Reverse
+	bankdb=# select reverse(fname) from employees;
+	 reverse
+	---------
+	 jaR
+	 ayirP
+	 nujrA
+	 namuS
+	 ativaK
+	 timA
+	 aheN
+	 luhaR
+	 ilajnA
+	 yajiV
+	 uhsa
+	 uhsa
+	(12 rows)
+	
+# length
+	bankdb=# select length(fname) from employees;
+		 length
+		--------
+			  3
+			  5
+			  5
+			  5
+			  6
+			  4
+			  4
+			  5
+			  6
+			  5
+			  4
+			  4
+		(12 rows)
+
+	bankdb=# SELECT * FROM employees WHERE LENGTH(fname) > 5;
+	 emp_id | fname  | lname |          email           |  dept   | salary | hire_date
+	--------+--------+-------+--------------------------+---------+--------+------------
+		  5 | Kavita | Rao   | kavita.rao@example.com   | HR      |  47000 | 2020-11-10
+		  9 | Anjali | Mehta | anjali.mehta@example.com | Finance |  61000 | 2018-12-03
+	(2 rows)
+
+====================================================================================================================================
+
+bankdb=# select concat_ws(':',emp_id, fname, lname, dept) from employees where emp_id = 1;
+    concat_ws
+-----------------
+ 1:Raj:Sharma:IT
+(1 row)
+
+bankdb=# select concat_ws(':',emp_id, concat_ws(' ', fname, lname), dept) from employees where emp_id = 1;
+    concat_ws
+-----------------
+ 1:Raj Sharma:IT
+(1 row)
+
+bankdb=# select concat_ws(':',emp_id, concat_ws(' ', fname, lname), upper(dept)) from employees where emp_id = 4;
+       concat_ws
+-----------------------
+ 4:Suman Patel:FINANCE
+(1 row)
+
+bankdb=# select * from employees where salary = (select min(salary) from employees);
+ emp_id | fname | lname |        email         | dept | salary | hire_date
+--------+-------+-------+----------------------+------+--------+-----------
+     12 | ashu  | jd    | ashu.jd@example.com  |      |  30000 |
+     16 | ashu  | jd    | ashu.jd@examplee.com |      |  30000 |
+(2 rows)
+
+====================================================================================================================================
+
+# ALTER
+# RENAME
+#
+
+# ALTER
+postgres=# alter table employees add column age int;
+ALTER TABLE
+postgres=# select * from employees
+;
+ emp_id | fname  | lname  |          email           |   dept    |  salary  | hire_date  | age
+--------+--------+--------+--------------------------+-----------+----------+------------+-----
+      1 | Raj    | Sharma | raj.sharma@example.com   | IT        | 50000.00 | 2020-01-15 |
+      2 | Priya  | Singh  | priya.singh@example.com  | HR        | 45000.00 | 2019-03-22 |
+      3 | Arjun  | Verma  | arjun.verma@example.com  | IT        | 55000.00 | 2021-06-01 |
+      4 | Suman  | Patel  | suman.patel@example.com  | Finance   | 60000.00 | 2018-07-30 |
+      5 | Kavita | Rao    | kavita.rao@example.com   | HR        | 47000.00 | 2020-11-10 |
+      6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing | 52000.00 | 2020-09-25 |
+      7 | Neha   | Desai  | neha.desai@example.com   | IT        | 48000.00 | 2019-05-18 |
+      8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        | 53000.00 | 2021-02-14 |
+      9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   | 61000.00 | 2018-12-03 |
+     10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing | 50000.00 | 2020-04-19 |
+(10 rows)
+
+postgres=# alter table employees drop column age;
+ALTER TABLE
+postgres=# select * from employees
+;
+ emp_id | fname  | lname  |          email           |   dept    |  salary  | hire_date
+--------+--------+--------+--------------------------+-----------+----------+------------
+      1 | Raj    | Sharma | raj.sharma@example.com   | IT        | 50000.00 | 2020-01-15
+      2 | Priya  | Singh  | priya.singh@example.com  | HR        | 45000.00 | 2019-03-22
+      3 | Arjun  | Verma  | arjun.verma@example.com  | IT        | 55000.00 | 2021-06-01
+      4 | Suman  | Patel  | suman.patel@example.com  | Finance   | 60000.00 | 2018-07-30
+      5 | Kavita | Rao    | kavita.rao@example.com   | HR        | 47000.00 | 2020-11-10
+      6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing | 52000.00 | 2020-09-25
+      7 | Neha   | Desai  | neha.desai@example.com   | IT        | 48000.00 | 2019-05-18
+      8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        | 53000.00 | 2021-02-14
+      9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   | 61000.00 | 2018-12-03
+     10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing | 50000.00 | 2020-04-19
+(10 rows)
+
+postgres=#
+
+# RENAME
+
+postgres=# alter table employees rename column fname to namef;
+ALTER TABLE
+postgres=# select * from employees;
+ emp_id | namef  | lname  |          email           |   dept    |  salary  | hire_date
+--------+--------+--------+--------------------------+-----------+----------+------------
+      1 | Raj    | Sharma | raj.sharma@example.com   | IT        | 50000.00 | 2020-01-15
+      2 | Priya  | Singh  | priya.singh@example.com  | HR        | 45000.00 | 2019-03-22
+      3 | Arjun  | Verma  | arjun.verma@example.com  | IT        | 55000.00 | 2021-06-01
+      4 | Suman  | Patel  | suman.patel@example.com  | Finance   | 60000.00 | 2018-07-30
+      5 | Kavita | Rao    | kavita.rao@example.com   | HR        | 47000.00 | 2020-11-10
+      6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing | 52000.00 | 2020-09-25
+      7 | Neha   | Desai  | neha.desai@example.com   | IT        | 48000.00 | 2019-05-18
+      8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        | 53000.00 | 2021-02-14
+      9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   | 61000.00 | 2018-12-03
+     10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing | 50000.00 | 2020-04-19
+(10 rows)
+
+postgres=# alter table employees rename to emp;
+ALTER TABLE
+postgres=# select * from emp;
+ emp_id | namef  | lname  |          email           |   dept    |  salary  | hire_date
+--------+--------+--------+--------------------------+-----------+----------+------------
+      1 | Raj    | Sharma | raj.sharma@example.com   | IT        | 50000.00 | 2020-01-15
+      2 | Priya  | Singh  | priya.singh@example.com  | HR        | 45000.00 | 2019-03-22
+      3 | Arjun  | Verma  | arjun.verma@example.com  | IT        | 55000.00 | 2021-06-01
+      4 | Suman  | Patel  | suman.patel@example.com  | Finance   | 60000.00 | 2018-07-30
+      5 | Kavita | Rao    | kavita.rao@example.com   | HR        | 47000.00 | 2020-11-10
+      6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing | 52000.00 | 2020-09-25
+      7 | Neha   | Desai  | neha.desai@example.com   | IT        | 48000.00 | 2019-05-18
+      8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        | 53000.00 | 2021-02-14
+      9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   | 61000.00 | 2018-12-03
+     10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing | 50000.00 | 2020-04-19
+(10 rows)
+
+postgres=# \d emp;
+                                          Table "public.emp"
+  Column   |          Type          | Collation | Nullable |                  Default
+-----------+------------------------+-----------+----------+-------------------------------------------
+ emp_id    | integer                |           | not null | nextval('employees_emp_id_seq'::regclass)
+ namef     | character varying(100) |           | not null |
+ lname     | character varying(50)  |           | not null |
+ email     | character varying(100) |           | not null |
+ dept      | character varying(50)  |           |          |
+ salary    | numeric(10,2)          |           |          | 30000.00
+ hire_date | date                   |           | not null | CURRENT_DATE
+Indexes:
+    "employees_pkey" PRIMARY KEY, btree (emp_id)
+    "employees_email_key" UNIQUE CONSTRAINT, btree (email)
+
+postgres=# alter table emp
+alter COLUMN namef
+set data type varchar(50);
+ALTER TABLE
+postgres=# \d emp;
+                                          Table "public.emp"
+  Column   |          Type          | Collation | Nullable |                  Default
+-----------+------------------------+-----------+----------+-------------------------------------------
+ emp_id    | integer                |           | not null | nextval('employees_emp_id_seq'::regclass)
+ namef     | character varying(50)  |           | not null |
+ lname     | character varying(50)  |           | not null |
+ email     | character varying(100) |           | not null |
+ dept      | character varying(50)  |           |          |
+ salary    | numeric(10,2)          |           |          | 30000.00
+ hire_date | date                   |           | not null | CURRENT_DATE
+Indexes:
+    "employees_pkey" PRIMARY KEY, btree (emp_id)
+    "employees_email_key" UNIQUE CONSTRAINT, btree (email)
+
+postgres=#
+
+ postgres=# alter table emp
+add column mobile varchar(15)
+check (length(mobile) >= 10);
+ALTER TABLE
+postgres=# select * from emp;
+ emp_id | namef  | lname  |          email           |   dept    |  salary  | hire_date  | mobile
+--------+--------+--------+--------------------------+-----------+----------+------------+--------
+      1 | Raj    | Sharma | raj.sharma@example.com   | IT        | 50000.00 | 2020-01-15 |
+      2 | Priya  | Singh  | priya.singh@example.com  | HR        | 45000.00 | 2019-03-22 |
+      3 | Arjun  | Verma  | arjun.verma@example.com  | IT        | 55000.00 | 2021-06-01 |
+      4 | Suman  | Patel  | suman.patel@example.com  | Finance   | 60000.00 | 2018-07-30 |
+      5 | Kavita | Rao    | kavita.rao@example.com   | HR        | 47000.00 | 2020-11-10 |
+      6 | Amit   | Gupta  | amit.gupta@example.com   | Marketing | 52000.00 | 2020-09-25 |
+      7 | Neha   | Desai  | neha.desai@example.com   | IT        | 48000.00 | 2019-05-18 |
+      8 | Rahul  | Kumar  | rahul.kumar@example.com  | IT        | 53000.00 | 2021-02-14 |
+      9 | Anjali | Mehta  | anjali.mehta@example.com | Finance   | 61000.00 | 2018-12-03 |
+     10 | Vijay  | Nair   | vijay.nair@example.com   | Marketing | 50000.00 | 2020-04-19 |
+(10 rows)
+
+# check
+
+postgres=# alter table emp
+add column mobile varchar(15)
+check (length(mobile) >= 10);
+ALTER TABLE
+
+postgres=# \d emp;
+                                          Table "public.emp"
+  Column   |          Type          | Collation | Nullable |                  Default
+-----------+------------------------+-----------+----------+-------------------------------------------
+ emp_id    | integer                |           | not null | nextval('employees_emp_id_seq'::regclass)
+ namef     | character varying(50)  |           | not null |
+ lname     | character varying(50)  |           | not null |
+ email     | character varying(100) |           | not null |
+ dept      | character varying(50)  |           |          |
+ salary    | numeric(10,2)          |           |          | 30000.00
+ hire_date | date                   |           | not null | CURRENT_DATE
+ mobile    | character varying(15)  |           |          |
+Indexes:
+    "employees_pkey" PRIMARY KEY, btree (emp_id)
+    "employees_email_key" UNIQUE CONSTRAINT, btree (email)
+Check constraints:
+    "emp_mobile_check" CHECK (length(mobile::text) >= 10)
+
+# Drop the check
+postgres=# alter table emp drop constraint "emp_mobile_check";
+ALTER TABLE
+postgres=# \d emp;
+                                          Table "public.emp"
+  Column   |          Type          | Collation | Nullable |                  Default
+-----------+------------------------+-----------+----------+-------------------------------------------
+ emp_id    | integer                |           | not null | nextval('employees_emp_id_seq'::regclass)
+ namef     | character varying(50)  |           | not null |
+ lname     | character varying(50)  |           | not null |
+ email     | character varying(100) |           | not null |
+ dept      | character varying(50)  |           |          |
+ salary    | numeric(10,2)          |           |          | 30000.00
+ hire_date | date                   |           | not null | CURRENT_DATE
+ mobile    | character varying(15)  |           |          |
+Indexes:
+    "employees_pkey" PRIMARY KEY, btree (emp_id)
+    "employees_email_key" UNIQUE CONSTRAINT, btree (email)
+
+
+# we can change the name of constraint for more readiliblity.
+# alter table emp add constraint mobile_lenght_matters check (length(mobile) >= 10);
+
+# select fname, salary, CASE WHEN salary >= 50000 THEN 'High' ELSE 'Low' END AS sal_cat FROM employees;
+
+====================================================================================================================================
+# relationship
+
+one to one 
+one to many 
+many to many
+
+storedb=# CREATE TABLE customers (
+cust_id SERIAL PRIMARY KEY,
+cust_name VARCHAR(100) NOT NULL
+);
+
+storedb=# CREATE TABLE orders (
+ord_id SERIAL PRIMARY KEY,
+ord_date DATE NOT NULL,
+price NUMERIC NOT NULL,
+cust_id INTEGER NOT NULL,
+FOREIGN KEY (cust_id) REFERENCES
+customers (cust_id));
+CREATE TABLE
+
+
+====================================================================================================================================
+
+types of join
+
+cross
+inner 
+right
+left 
+
+
+Inner Join
+
+task=# select * from customers c inner join orders o on c.cust_id=o.cust_id;
+ cust_id | cust_name | ord_id |  ord_date  | cust_id
+---------+-----------+--------+------------+---------
+       1 | Raju      |      1 | 2024-01-01 |       1
+       2 | Sham      |      2 | 2024-02-01 |       2
+       3 | Paul      |      3 | 2024-03-01 |       3
+       2 | Sham      |      4 | 2024-04-04 |       2
+(4 rows)
+
+task=# select * from customers;
+ cust_id | cust_name
+---------+-----------
+       1 | Raju
+       2 | Sham
+       3 | Paul
+       4 | Alex
+(4 rows)
+
+task=# select * from orders;
+ ord_id |  ord_date  | cust_id
+--------+------------+---------
+      1 | 2024-01-01 |       1
+      2 | 2024-02-01 |       2
+      3 | 2024-03-01 |       3
+      4 | 2024-04-04 |       2
+(4 rows)
+
+task=# select * from customers c inner join orders o on o.cust_id= c.cust_id;
+ cust_id | cust_name | ord_id |  ord_date  | cust_id
+---------+-----------+--------+------------+---------
+       1 | Raju      |      1 | 2024-01-01 |       1
+       2 | Sham      |      2 | 2024-02-01 |       2
+       3 | Paul      |      3 | 2024-03-01 |       3
+       2 | Sham      |      4 | 2024-04-04 |       2
+(4 rows)
+
+task=# select * from orders o inner join customers c on o.cust_id= c.cust_id;
+ ord_id |  ord_date  | cust_id | cust_id | cust_name
+--------+------------+---------+---------+-----------
+      1 | 2024-01-01 |       1 |       1 | Raju
+      2 | 2024-02-01 |       2 |       2 | Sham
+      3 | 2024-03-01 |       3 |       3 | Paul
+      4 | 2024-04-04 |       2 |       2 | Sham
+(4 rows)
+
+
+JOIN Multiple tables
+task=# select e.enrollment_id, e.s_id, e.c_id, s.name, c.name, c.fee, e.enrollment_date from enrollment e join students s on e.s_id=s.s_id join courses c on c.c_id=e.c_id;
+ enrollment_id | s_id | c_id | name |    name     |  fee   | enrollment_date
+---------------+------+------+------+-------------+--------+-----------------
+             1 |    1 |    1 | Raju | Mathematics | 500.00 | 2024-01-01
+             2 |    1 |    2 | Raju | Physics     | 600.00 | 2024-01-15
+             3 |    2 |    1 | Sham | Mathematics | 500.00 | 2024-02-01
+             4 |    2 |    3 | Sham | Chemistry   | 700.00 | 2024-02-15
+             5 |    3 |    3 | Alex | Chemistry   | 700.00 | 2024-03-25
+(5 rows)
+
+
+=================================================================================================================
+# HAVING
+
+Having is same as the where, just the diff is where is used befor the group by, and having is used afte the group by
+
+# ROLLUP -> need to check
+# COALESCE
+=================================================================================================================
+# STORED PROCEDURE
+# CREATE OR REPLACE PROCEDURE <name of crocedure>( 1st parameter, 2nd parameetr)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+<query>
+END
+$$
+
+Stored procudure is like a function in sql, and you can all the function with name of that procedure
+
+CREATE OR REPLACE PROCEDURE update_emp_salary(p_employee_id INT, p_new_salary NUMERIC)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+UPDATE employees SET salary = p_new_salary WHERE emp_id = p_employee_id;
+END;
+$$;
+
+update_emp_salary(3, 75000);
+
+CREATE OR REPLACE PROCEDURE add_employee(
+p_fname VARCHAR,
+p_Iname VARCHAR,
+p_email VARCHAR,
+p_dept VARCHAR,
+p_salary NUMERIC
+
+LANGUAGE plpgsql
+AS $$
+BEGIN
+INSERT INTO employees (fname, lname, email, dept, salary)
+VALUES (p_fname, p_lname, p_email, p_dept, p_salary);
+END;
+$$;
+
+add_employee(manu, kaku, manukaku@gmail.com, food, 100000);
+=================================================================================================================
+Used defined functions
+what is diff in Function and Procedure
+Function → mainly used to calculate and return a value/result.
+Procedure → mainly used to perform a task or business operation.
+
+CREATE OR REPLACE FUNCTION dept_max_sal_emp1(dept_name VARCHAR)
+RETURNS TABLE(emp_id INT, fname VARCHAR, salary NUMERIC)
+AS $$
+BEGIN
+RETURN QUERY
+SELECT
+e.emp_id, e.fname, e.salary
+FROM
+employees e
+WHERE
+e.dept = dept_name
+AND e.salary = (
+SELECT MAX(emp.salary)
+FROM employees emp
+WHERE emp.dept = dept_name
+
+);
+END;
+$$ LANGUAGE plpgsql;
+
+#window finction
+# over()
+# CTE
+# Tarigger

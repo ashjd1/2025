@@ -1,13 +1,32 @@
 CKA reference to the course https://github.com/kodekloudhub/certified-kubernetes-administrator-course
 https://notes.kodekloud.com/docs/CKA-Certification-Course-Certified-Kubernetes-Administrator/Introduction/Course-Introduction
 
+JSON cource :- https://learn.kodekloud.com/user/courses/json-path-test-free-course/module/114e6dee-a9f2-49f3-a0c6-cdfb92f74310/lesson/735607d5-54ad-4f18-b636-de14fc925a4c
+
+this coomand will create the pod and relative "service" as well, just use "--expose" flag
+"$ k run httpd --image=nginx --port=80 --expose=true"
+
 some of the configuration files are at "/etc/kubernetes/manifests/"
-Execute any command in pod without going inside the pod 
 
-NOTE: - if you want to use "--command" option in kubectl command then always use at the end, even --dry-run even the -o yaml shoule be before that command. and to give any command you will need to add --, ex. "$ kubectl run static-busybox --image=busybox -n default --dry-run=client -o yaml --command -- sleep 1000"
+NOTE: - if you want to use "--command" option in "$ k run" command then always use at the end, even --dry-run even the -o yaml shoule be before that command. and to give any command you will need to add -- 
+ex. "$ k run static-busybox --image=busybox -n default --dry-run=client -o yaml --command -- sleep 1000"
 
+
+Keep in mind scheduler and control-manager are two different things
+	scheduler: - "Which Pod goes where" ✅
+		Chooses the best node for each unscheduled Pod.
+		It only decides where the Pod should run.
+ 
+	Control-manager: - "Is everything running as desired" ✅
+		Continuously compares the desired state with the actual state.
+		If they differ, it takes action to make them match.
+		
 You can ssh to node and go to that node just by ssh <node name or IP>, you will get IP as "kubectl get nodes -o wide."
 
+"$ k create -f /dev/pod.yaml -f /etc/deploy.yaml -f /root.svc.yaml"
+you can create multiple resources with single command just mention -f for each resource file.
+
+Execute any command in pod without going inside the pod with -- option.
 "$ k exec <pod-name> -- <command>"
 example 
 "$ kubectl exec nginx -- ls /"
@@ -21,56 +40,59 @@ you can use "k" insted of "kubectl"
 $ kubectl get all
 $ kubectl replace --foce -f pod.yaml -> delete exesting pod and create new from same file.
 
-you can create dir(ashu) then put all your yaml files there, then go to parent dir(../) then then run
+you can create dir(ashu) then put all your yaml files there, then go to parent dir(../) and run
 "$ k create -f ashu/" 
 it will create all the resources in single command from that dir.
+Also you can mention all the resources in single yaml file, just seperate each file with --- line and run create command, your all the resources will get created.
 
-master node and worked node
+master node and worker node: -
+	master node has control plain component by which it can manage multiple worker nodes and its containers
 
-master node has control plain component by which it can manage multiple worked nodes and its containers
+	kubelet is present on all the nodes and it always listen to master node and manage the node.
+	also master node fetches the data from kubelet to monitor nodes and container .
 
-kubelet is present on all the nodes and it always listen to master node and manage the node.
-also master node fetches the data from kubelet to monitor nodes and container .
+	recent version from 1.24 version of k8s "docker" is not supported.
+	instead it supports containerD, very similar to docker
+	check more on containerD in here "https://github.com/containerd/containerd"
+	so instead of "docekr ps -a" you will need to use "nerdctl ps -a" replace "docker" with "nerdctl".
 
-recent version from 1.24 version of k8s "docker" is not supported.
-instead it supports containerD, very similar to docker
-check more on containerD in here "https://github.com/containerd/containerd"
-so instead of "docekr ps -a" you will need to use "nerdctl ps -a" replace "docker" with "nerdctl".
+ETCD (etcd cluster): - default port for etcd is "2379"
 
-ETCD (etcd cluster): -
-
-	etcd is a distributed and reliable key-value store used by Kubernetes to store cluster data in key-value format. 
-	When you run a command such as kubectl get pods, the request goes to the Kubernetes API Server, and the API Server reads 
-	the required data from etcd (or from its cache) and returns the result to you. etcd stores information about Pods, Deployments, 
-	Services, ConfigMaps, Secrets, Nodes, and the overall cluster state.
+	etcd is a distributed and reliable key-value store used by Kubernetes to store cluster data in key-value format. When you run a command such as kubectl get pods, the request goes to the Kubernetes API Server, and the API Server reads the required data from etcd (or from its cache) and returns the result to you. etcd stores information about Pods, Deployments, Services, ConfigMaps, Secrets, Nodes, and the overall cluster state.
 	
-	An etcd cluster is a group of one or more etcd servers that work together to store Kubernetes cluster data reliably. 
-	It keeps critical information such as Pods, Deployments, Services, Secrets, ConfigMaps, and cluster state. In a multi-node etcd 
-	cluster, the members synchronize data using the Raft consensus algorithm, ensuring consistency even if some nodes fail. 
-	Kubernetes API Server reads from and writes to etcd to maintain the desired state of the cluster. Having multiple etcd members 
-	provides high availability and protects against data loss if a server goes down.
+	An etcd cluster is a group of one or more etcd servers that work together to store Kubernetes cluster data reliably. It keeps critical information such as Pods, Deployments, Services, Secrets, ConfigMaps, and cluster state. In a multi-node etcd cluster, the members synchronize data using the Raft consensus algorithm, ensuring consistency even if some nodes fail. Kubernetes API Server reads from and writes to etcd to maintain the desired state of the cluster. Having multiple etcd members provides high availability and protects against data loss if a server goes down.
 	
 	Commands: -
-	to run any command with etcd you will need to export "ETCDCTL_API" veriable to "3", with this veriable etcd understand to use its version 3 by default its a 2.2 or something.
-	Then to ecexute ant etcd command we need server ip and port (end point), ca cert, server cert and server key. so command become as "$ etcdctl snapshot save <backup-file> --endpoints=<endpoint> --cacert=<ca.crt> --cert=<server.crt> --key=<server.key>"
-	Why we need to specify these details? usually the ETCD server talk to api-server and api-server take care of authentation, but as we are manually requesting ETCD cluster, we need to take care of authentation as well, so we need to provide the details.
+	to run any command with etcd you will need to export "ETCDCTL_API" veriable to "3", with this veriable etcd understand to use its version 3 by default its a 2.2 or something. Then to ecexute ant etcd command we need server ip and port (end point), ca cert, server cert and server key. so command become as "$ etcdctl snapshot save <backup-file> --endpoints=<endpoint> --cacert=<ca.crt> --cert=<server.crt> --key=<server.key>" Why we need to specify these details? usually the ETCD server talk to api-server and api-server take care of authentation, but as we are manually requesting ETCD cluster, we need to take care of authentation as well, so we need to provide the details.
 	
 kube-apiserver: -
 
-	there are multiple component in k8s, so connecting all those components to each other and talking to each other with right information 
-	is done by kube-apiserver.
+	there are multiple component in k8s, so connecting all those components to each other and talking to each other with right information is done by kube-apiserver.
+
+Controller manager: -
+	
+	Don't get confused with the scheduler—it's a different component. The Controller Manager consists of multiple controllers, such as the Replication Controller, Node Controller, Pod Controller, and many others. The job of each controller is to continuously compare the desired state of a resource with its current state. If they don't match, the controller takes the necessary actions to reconcile the difference and bring the resource back to its desired state.	
+
+kubelet: -
+
+	Kubelet is installed on every node and communicates with the API server. The API server continuously interacts with the kubelet to monitor the health and status of each node.
+
+kube-proxy: -
+
+	Kube-proxy runs on every node and is responsible for service networking within the cluster. Whenever a Service is created, kube-proxy detects it and configures the necessary networking rules to route traffic to the appropriate Pods. A Service is not an actual process running in the cluster; it is a virtual abstraction, and its networking behavior is implemented and managed by kube-proxy.
 	
 pods
 
 	smallest block in k8s.
-	in single pod we can have multiple container but not same kind of containers, we can have multiple containers of differnt kinds.
-	like you can't run two python container in single pod, but you can run python and nginx cotainers in single pod.
+	in single pod we can have multiple container but not same kind of containers, we can have multiple containers of differnt kinds. like you can't run two python container in single pod, but you can run python and nginx cotainers in single pod.
 
+	fastest way to get yaml file
+	"$ k run nginx --image-nginx --dry-run=client -o yaml > pod.yaml"
+	
 	you will get the yaml file of existing pod in detail.
 	$ kubectl get pods nginx -o yaml 
 
-	you can create pods with commandline without yaml file. and you can create yaml file as well with command.
-	follow the below commands
+	you can create pods with commandline without yaml file. and you can create yaml file as well with command. follow the below commands
 	
 	$ kubectl run nginx-2 --image=nginx --dry-run=client -o yaml
 	apiVersion: v1
@@ -148,16 +170,15 @@ pods
 	kubectl get pods --selector env=dev 					-> you will get the pods from env labels.
 	kubectl get pods --selector env=dev, bu=finance 		-> label with finance and dev.
 
-Replicaset: -
+ReplicaSet: -
 	
-	replication controller is older technology and got replaced with replicaset.
-	in replicationcontroller "selector" is not mandatory but in Replicaset it is mandatory.
-	Replicaset can manage pods which are created by the replicaset itself and also the pods matched with spec:selector:matchLabels, 
-	no matter when you create the pod, but this not happens with replicationcontroller.
+	replication controller is older technology and got replaced with replicaset. in replicationcontroller "selector" is not mandatory but in Replicaset it is mandatory. Replicaset can manage pods which are created by the replicaset itself and also the pods matched with spec:selector:matchLabels, no matter when you create the pod, but this not happens with replicationcontroller.
 	
+	ReplicaSet VS Deployment: -
+	A ReplicaSet is a controller. A Deployment is resource. The Deployment asks ReplicaSets to create pod, and the ReplicaSet create and manages Pods, you can do rollback update and all those things with Deployment.
 
-	KEEP IN MIND:- in ReplicaSet you have to match the labels whatever you are giving in spec:template:labels to 
-	spec:selector:matchLabels, otherwise you will get error.
+	KEEP IN MIND:- 
+	in ReplicaSet you have to match the labels whatever you are giving in spec:template:labels to spec:selector:matchLabels, otherwise you will get error.
 
 	replicationcontroller: -
 		$ kubectl get replicationcontroller
@@ -230,8 +251,7 @@ Replicaset: -
 			
 Deployment: -
 
-	deploment is exactly same as replicalset, just one feature.
-	you can role and role back your update to pods one after another, even you can pause the update as well.
+	deploment is exactly same as replicalset, just one feature. you can roleUpdate and role back your updates to pods one after another, even you can pause the update as well.
 	
 	you can create deployment from command line, commands as below: -
 	
@@ -356,19 +376,15 @@ Deployment: -
 	
 	Deployment update and rollback: -
 		update image in deployment
+			"$ k set image deployment <name of deployment> <container name>=<new image>"
 			"$ kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.16.1"
-			"$ k set image deployment <name of deployment> <container name>:<new image>"
-		
-		Advance topic, check it here <link>
-
-	There are multiple strategy to roll-update, one of them is "Recreate", in recreate all the pods will be deleted and recreate with new update,
-	on this strategy you can face the application downtime, and it is not default strategy used in k8s.
+			
+	There are multiple strategy to roll-update, one of them is "Recreate", in recreate all the pods will be deleted and recreate with new update, on this strategy you might face the application downtime, and it is not default strategy used in k8s.
 	
-	"Rolling update" in this strategy one pod will be deleted and one pod will be up with new version same for another pod,
-	pods will be down one by one and get up one by one, not all pods down and all pods up. one down one up, same precress repetated for all the precess.
-	This strategy is default strategy used by k8s.
+	"Rolling update" in this strategy one pod will be deleted and one pod will be up with new version, same for each pod, pods will be down one by one and get up one by one, not all pods down and all pods up. one down one up, same precress repetated for all the precess. This strategy is default strategy used by k8s.
 	
-	to update the image from deployment you can use "$kubectl  set image deployment <deployment name> <previous CONTAINER name>=<new image>" command.
+	to update the image from deployment you can use command.
+	"$ k set image deployment <deployment name> <previous CONTAINER name>=<new image>" 
 	
 	$ kubectl create deployment nginx-deployment --image=nginx --replicas=10                    
 	deployment.apps/nginx-deployment created
@@ -442,21 +458,20 @@ Deployment: -
 	OldReplicaSets:  nginx-deployment-6cfb98644c (0/0 replicas created)										# check here
 	NewReplicaSet:   nginx-deployment-6857755f8 (10/10 replicas created)									# check here		
 	Events:
-	  Type    Reason             Age                  From                   Message
-	  ----    ------             ----                 ----                   -------
-	  Normal  ScalingReplicaSet  4m20s                deployment-controller  Scaled up replica set nginx-deployment-6cfb98644c from 0 to 10
-	  Normal  ScalingReplicaSet  2m19s                deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 0 to 3
-	  Normal  ScalingReplicaSet  2m19s                deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 10 to 8
-	  Normal  ScalingReplicaSet  2m19s                deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 3 to 5
-	  Normal  ScalingReplicaSet  118s                 deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 8 to 7
-	  Normal  ScalingReplicaSet  118s                 deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 5 to 6
-	  Normal  ScalingReplicaSet  117s                 deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 7 to 6
-	  Normal  ScalingReplicaSet  117s                 deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 6 to 7
-	  Normal  ScalingReplicaSet  115s                 deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 6 to 5
-	  Normal  ScalingReplicaSet  106s (x8 over 115s)  deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-6cfb98644c from 1 to 0
+	  Type    Reason             Age                 From                   Message
+	  ----    ------             ----                ----                   -------
+	  Normal  ScalingReplicaSet  4m20s               deployment-controller  Scaled up replica set nginx-deployment-6cfb98644c from 0 to 10
+	  Normal  ScalingReplicaSet  2m19s               deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 0 to 3
+	  Normal  ScalingReplicaSet  2m19s               deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 10 to 8
+	  Normal  ScalingReplicaSet  2m19s               deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 3 to 5
+	  Normal  ScalingReplicaSet  118s                deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 8 to 7
+	  Normal  ScalingReplicaSet  118s                deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 5 to 6
+	  Normal  ScalingReplicaSet  117s                deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 7 to 6
+	  Normal  ScalingReplicaSet  117s                deployment-controller  Scaled up replica set nginx-deployment-6857755f8 from 6 to 7
+	  Normal  ScalingReplicaSet  115s                deployment-controller  Scaled down replica set nginx-deployment-6cfb98644c from 6 to 5
+	  Normal  ScalingReplicaSet  106s (x8 over 115s) deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-6cfb98644c from 1 to 0
 	  	
-	When you create the deployemnt, that time deployemnt create the replicaset under the hood, when  you update the deployment that time another replicaset is get created,
-	and pod get deleted from older replica and new one created in new replica, similarlly happes for all the pods and update is rolled one pod by one pod.
+	When you create the deployemnt, that time deployemnt create the replicaset under the hood, when  you update the deployment that time another replicaset is get created, 	and pod get deleted from older replica and new one created in new replica, similarlly happes for all the pods and update is rolled one pod by one pod.
 	
 	if you run get command for replica, you can see older repicas have 0 pods and new replicas has 10 pods, check the timestamp.
 	
@@ -539,13 +554,10 @@ Deployment: -
 	5         <none>
 	6         kubectl set image deployment nginx-deployment nginx=nginx:1.7.1 --record=true
 
-	If you want to edit strategy then add spec:strategy:type <strategy name>, in deployemnt.yaml file.
+	If you want to edit strategy then add spec:strategy:type: <strategy name>, in deployemnt.yaml file.
 	
-	and if you want to change strategy of existing deployment then, "$ kubectl edit deployemnt <name>"
-	search for "strategy:" then change the type of strategy.
+	and if you want to change strategy of existing deployment then, "$ kubectl edit deployemnt <name>" search for "strategy:" then change the type of strategy.
 
-
-	
 Services: -
 	
 	NOTE: - If you done specifi the type of service, it will consider it as ClusterIP, by default.
@@ -587,7 +599,64 @@ Services: -
 
 	NOTE: - in below commands nginx pod is already there and we are inclusing that pod in new srvice while creating,
 	So it is easy way to inlcude pod and create the service.
+
+
+	endpoint: -
+	Endpoint is related to a Service. When you create a Service, all you get is a port. You can use the IP and that port to access your Pods, right?
+	At the Service level, you can see how many Endpoints there are. The Service configures the IP address of each pod and port and creates the Endpoints, and when you access IP and port svc divert the trafic to endpoint.
 	
+		k describe svc my-service 
+		Name:                     my-service
+		Namespace:                default
+		Labels:                   <none>
+		Annotations:              <none>
+		Selector:                 name=nginx
+		Type:                     NodePort
+		IP Family Policy:         SingleStack
+		IP Families:              IPv4
+		IP:                       10.102.104.40
+		IPs:                      10.102.104.40
+		Port:                     <unset>  80/TCP
+		TargetPort:               80/TCP
+		NodePort:                 <unset>  30000/TCP
+		Endpoints:                192.168.1.195:80   -> when you access the <nodeip:port> sercie diver trafic to this endpoint
+		Session Affinity:         None
+		External Traffic Policy:  Cluster
+		Internal Traffic Policy:  Cluster
+		Events:                   <none>
+
+		I have created deploy with 10 pods, so check enpoints here.
+		$ k describe svc my-service 
+		Name:                     my-service
+		Namespace:                default
+		Labels:                   <none>
+		Annotations:              <none>
+		Selector:                 app=nginx-deploy
+		Type:                     NodePort
+		IP Family Policy:         SingleStack
+		IP Families:              IPv4
+		IP:                       10.102.104.40
+		IPs:                      10.102.104.40
+		Port:                     <unset>  80/TCP
+		TargetPort:               80/TCP
+		NodePort:                 <unset>  30000/TCP
+		Endpoints:                192.168.1.221:80,192.168.0.103:80,192.168.1.28:80 + 5 more...
+		Session Affinity:         None
+		External Traffic Policy:  Cluster
+		Internal Traffic Policy:  Cluster
+		Events:                   <none>
+		
+		k get endpoints
+		Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+		NAME         ENDPOINTS                                                        AGE
+		kubernetes   172.30.1.2:6443                                                  20d
+		my-service   192.168.0.103:80,192.168.0.146:80,192.168.0.162:80 + 7 more...   31m
+		
+		$ k get endpoints my-service 
+		Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+		NAME         ENDPOINTS                                                        AGE
+		my-service   192.168.0.103:80,192.168.0.146:80,192.168.0.162:80 + 7 more...   32m		
+		
 	$ kubectl expose pod nginx --port=3007 --target-port=80 --name=nginx-service --dry-run=client -o yaml
 
 	apiVersion: v1
@@ -1209,69 +1278,99 @@ Validate and mutate admission controller: -
 
 Logging and Monitoring: -
 
-	K8s has the kubelet agent, which get instruction from k8s api master server and execure.
-	kubelet has another sub component named as cADVISOR (Container advisor), this retrive the performance from pod and make availabe 
-	through kubelet api to metrics server.
+	K8s has the kubelet agent, which get instruction from k8s api master server and execure. kubelet has another sub component named as cADVISOR (Container advisor), this retrive the performance from pod and make availabe through kubelet api to metrics server.
+	metrics server is monito tool
 	
 	by Default metrics server is not there you will need to configure it, from github. check on google how to configure it.
 	$ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 	
-	after configuration you can run "$ kubectl top node" an "$ kubectl top pod" command
+	after configuration you can run "$ kubectl top node" and "$ kubectl top pod" command
 	with above command you can check how much CPU and memory get consumned by the node and the pod.
 	
 	log: - 
 		"$ kubectl logs -f <pod name>" you will get all the logs related to the container inside the node.
 		If there are multiple containers inside the same node, you can use "$ kubectl logs -f <pod name> <container name>" 
 		
-Docker ommands and args: -
-	
-	"$ docker run ubuntu" will run ubuntu container and exit, container is not up and running.
-	container ment to do some task, like computation, some analysis and not to do some continus task, like hosting OS, so once its task is done it will exit.
-	
-	If you append the command as a argument at the end of "docke run command" , it will execute that command, if there is some CMD or ENTRYOPINT mentioned in Dockerfile, 
-	even that aslo will get overwitten that command.
-	
-	CMD ["sleep", "5"] or CMD sleep 5, mention this in Dockerfile, and it will execute everytime when we run the container.
-	CMD should be mentioned exactly like that, not like CMD["sleep 5"] or CMD[sleep 5], it will give error.
-	
-	you can use the ENTRYOPINT as well, ENTRYOPINT can access the argiment from commandline.
-	if you just mention the sleep in ENTRYOPINT and pass the 5 as here "$ docker run ubuntu 5" then it will sleep for 5 sec.
-	But if you did same while using the CMD it will replace whole "$ CMD["sleep", "5"]" with 5 and then Dockerfile dont know what to do with 5 so you will get error.
-	also if you just mention "$ CMD["sleep"]" then Dockerfile will treate it as sleep and wont able to execute any command.
-	
-Pod ommand and args: -
+Application lifecycle:- 
 
-	apiVersion: v1
-	kind: Pod
-	metadata:
-	  creationTimestamp: null
-	  labels:
-		run: nginx
-	  name: nginx
-a	spec:
-	  containers:
-	  - image: nginx
-		name: nginx
-		command: ["sleep", 10]									# this will get executed as ENTRYOPINT
-		args: ["7"]												# this will get execute as CMD
+	Rolling update and rollback: -
+	
+		$ kubectl rollout status deployment nginx-deployment
+		deployment "nginx-deployment" successfully rolled out
+
+		$ kubectl rollout history deployment nginx-deployment
+		deployment.apps/nginx-deployment 
+		REVISION  CHANGE-CAUSE
+		5         <none>
+		6         kubectl set image deployment nginx-deployment nginx=nginx:1.7.1 --record=true
+
+		If you want to edit strategy then add spec:strategy:type: <strategy name>, in deployemnt.yaml file.
+		
+		and if you want to change strategy of existing deployment then, "$ kubectl edit deployemnt <name>" search for "strategy:" then change the type of strategy.
+	
+		There are multiple strategy to rollout update, one of them is "Recreate", in recreate all the pods will be deleted and recreate with new update, on this strategy you might face the application downtime, and it is not default strategy used in k8s.
+		
+		"Rolling updates" in this strategy one pod will be deleted and one pod will be up with new version, same for each pod, pods will be down one by one and get up one by one, not all pods down and all pods up. one down one up, same precress repetated for all the precess. This strategy is default strategy used by k8s.
+
+		update image in deployment
+		"$ kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.16.1"
+		"$ k set image deployment <name of deployment> <container name>=<new image>"
+
+		to rollback, you can use below command.
+		$ kubectl rollout undo deployment nginx-deployment
+		deployment.apps/nginx-deployment rolled back
+		
+		To check history of updates: -
+		$ k rollout history <deployment>
+	
+	Docker ommands and args: -
+		
+		"$ docker run ubuntu" will run ubuntu container and exit, container is not up and running.
+		container ment to do some task, like computation, some analysis and not to do some continus task, like hosting OS, so once its task is done it will exit.
+		
+		If you append the command as a argument at the end of "docke run command" , it will execute that command, if there is some CMD or ENTRYOPINT mentioned in Dockerfile, even that aslo will get overwitten that command.
+		
+		CMD ["sleep", "5"] or CMD sleep 5, mention this in Dockerfile, and it will execute everytime when we run the container.
+		CMD should be mentioned exactly like that, not like CMD["sleep 5"] or CMD[sleep 5], it will give error.
+		
+		you can use the ENTRYOPINT as well, ENTRYOPINT can access the argiment from commandline.
+		if you just mention the sleep in ENTRYOPINT and pass the 5 as here "$ docker run ubuntu 5" then it will sleep for 5 sec.
+		But if you did same while using the CMD it will replace whole "$ CMD["sleep", "5"]" with 5 and then Dockerfile dont know what to do with 5 so you will get error.
+		also if you just mention "$ CMD["sleep"]" then Dockerfile will treate it as sleep and wont able to execute any command.
+	
+	Pod ommand and args: -
+
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  creationTimestamp: null
+		  labels:
+			run: nginx
+		  name: nginx
+		spec:
+		  containers:
+		  - image: nginx
+			name: nginx
+			command: ["sleep", 10]									# this will get executed as ENTRYOPINT
+			args: ["7"]												# this will get execute as CMD
 		
 		
-Environment variable: -
+	Environment variable: -
 
-	apiVersion: v1
-	kind: Pod
-	metadata:
-	  creationTimestamp: null
-	  labels:
-		run: nginx
-	  name: nginx
-	spec:
-	  containers:
-	  - image: nginx
-		name: nginx
-		env:													# export
-		- name: APP_COLOR										# APP_COLOR=
-		  value: blue											# blue
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  creationTimestamp: null
+		  labels:
+			run: nginx
+		  name: nginx
+		spec:
+		  containers:
+		  - image: nginx
+			name: nginx
+			env:													# export
+			- name: APP_COLOR										# APP_COLOR=
+			  value: blue											# blue
 		  
 	configMaps: -
 		If your server have multile pods and resources then it is difficult to manage the environment veriables,
@@ -1604,44 +1703,8 @@ Secret: -
 			- secretRef: 
 				name: ashu
 
-MultiContainerPod: -
+	MultiContainerPod: -
 
-		apiVersion: v1
-		kind: Pod
-		metadata:
-		  creationTimestamp: null
-		  labels:
-			run: nginx
-		  name: nginx
-		spec:
-		  containers:								# this is array, you can mention as much container as you want in array format.
-		  - image: nginx
-			name: nginx-container
-		  - image: busybox
-			name: busybox-container
-			
-	There are some patterns of multicontainer pods,
-	
-	Co-located container: -
-		So both the containers start at a time and dependent on each other, and continue service.
-		
-			apiVersion: v1
-			kind: Pod
-			metadata:
-			  creationTimestamp: null
-			  labels:
-				run: nginx
-			  name: nginx
-			spec:
-			  containers:
-			  - image: nginx
-				name: nginx-container
-			  - image: busybox
-				name: busybox-container
-		
-	Regular init container: -
-		two containers, but one is just used to start the main container, once the main container is tarted then 1st container termeneted.
-		
 			apiVersion: v1
 			kind: Pod
 			metadata:
@@ -1653,35 +1716,71 @@ MultiContainerPod: -
 			  containers:								# this is array, you can mention as much container as you want in array format.
 			  - image: nginx
 				name: nginx-container
-			  initContainers:							# This container starts 1st. This is also an array.
 			  - image: busybox
 				name: busybox-container
-			  - image: busybox							# Then this container start, and at nginx container will start.
-				name: busybox-container-1
+				
+		There are some patterns of multicontainer pods,
+		
+		Co-located container: -
+			So both the containers start at a time and dependent on each other, and continue service.
+			
+				apiVersion: v1
+				kind: Pod
+				metadata:
+				  creationTimestamp: null
+				  labels:
+					run: nginx
+				  name: nginx
+				spec:
+				  containers:
+				  - image: nginx
+					name: nginx-container
+				  - image: busybox
+					name: busybox-container
+			
+		Regular init container: -
+			two containers, but one is just used to start the main container, once the main container is tarted then 1st container termeneted.
+			
+				apiVersion: v1
+				kind: Pod
+				metadata:
+				  creationTimestamp: null
+				  labels:
+					run: nginx
+				  name: nginx
+				spec:
+				  containers:								# this is array, you can mention as much container as you want in array format.
+				  - image: nginx
+					name: nginx-container
+				  initContainers:							# This container starts 1st. This is also an array.
+				  - image: busybox
+					name: busybox-container
+				  - image: busybox							# Then this container start, and at nginx container will start.
+					name: busybox-container-1
 
-		
-	Sidecar contaiern: -
-		Similart to regular init container, it start the mian container, but does not get terminited, it continues operation with main container.
-		Sidecar container usually used to get logs of termination of main-container.
-		
-			apiVersion: v1
-			kind: Pod
-			metadata:
-			  creationTimestamp: null
-			  labels:
-				run: nginx
-			  name: nginx
-			spec:
-			  containers:								# This is array, you can mention as much container as you want in array format.
-			  - image: nginx
-				name: nginx-container
-			  initContainers:							# This container starts 1st. This is also an array.
-			  - image: busybox
-				name: busybox-container
-				restartPolicy: Always					# This make sure that this container never get down, until main-cintainer dont get terminiated, so works as side-car.
-		
-		
-	The difference in Co-located and Sidecar contaiern we have privalage to start the 1st container in sidecar container, but in co-located container, both have to start at a time.
+			
+		Sidecar contaiern: -
+			Similart to regular init container, it start the mian container, but does not get terminited, it continues operation with main container.
+			Sidecar container usually used to get logs of termination of main-container.
+			
+				apiVersion: v1
+				kind: Pod
+				metadata:
+				  creationTimestamp: null
+				  labels:
+					run: nginx
+				  name: nginx
+				spec:
+				  containers:								# This is array, you can mention as much container as you want in array format.
+				  - image: nginx
+					name: nginx-container
+				  initContainers:							# This container starts 1st. This is also an array.
+				  - image: busybox
+					name: busybox-container
+					restartPolicy: Always					# This make sure that this container never get down, until main-cintainer dont get terminiated, so works as side-car.
+			
+			
+		The difference in Co-located and Sidecar contaiern we have privalage to start the 1st container in sidecar container, but in co-located container, both have to start at a time.
 	
 	
 Auto scalling: -
@@ -1777,20 +1876,13 @@ Cluster maintenence : -
 	
 	OS upgrade: -
 	
-		conside due to some reason, node is down for 5 min for some reason, then all the pods from that node will be killed, becaus it considered as dead node.
-		and why 5 min, because it configured in k8s server, and when node comes up then it comes as blank, no pod or any other service will be runing on that node,
-		when the node is down, and you have replica or deplouyemnt from that node, then those pods will be created on other node.
+		conside due to some reason, node is down for 5 min, then all the pods from that node will be killed, becaus it considered as dead node.	and why 5 min, because it configured in k8s server, and when node comes up then it comes as blank, no pod or any other service will be runing on that node, when the node is down, and you have replica or deployment from that node, then those pods will be created on other node.
 		
-		while the maintenence, you will need to take down the nodes, if that node is down for 5 min it will be dead, so you can drain the node,
-		with command "$ kubectl drain node-1" you will need to use "--ignore-daemonsets to ignore daemonsets" option, then all the resources from that node will be shifted to the other node, and node will be completely empty,
-		and then you can work on it. Once maintenence is node then node can be come up with "$ kubectl uncordon node-1", so now node is up and running but still its empty,
-		then node is up, then all the resources which moved to other node will not come automatecly to that node, if that resource deleted and recreated then it will be on that node(node-1)
+		while the maintenence, you will need to take down the nodes, if that node is down for 5 min it will be dead, so you can drain the node, with command "$ kubectl drain node-1" you will need to use "--ignore-daemonsets to ignore daemonsets" option, then all the resources from that node will be shifted to the other node, and node will be completely empty, and then you can work on it. Once maintenence is node then node can be come up with "$ kubectl uncordon node-1", so now node is up and running but still its empty, then node is up, then all the resources which moved to other node will not come automatecly to that node, if that resource deleted and recreated then it will be on that node(node-1)
 		
-		there is another command "$ kubectl cordon node-2" which will make sure that no any other resource will scheduled for this node.
-		so that we can drain the node and cordon, so will be empty and no other resource will be on that node.
+		there is another command "$ kubectl cordon node-2" which will make sure that no any other resource will scheduled for this node. so that we can drain the node and cordon, so will be empty and no other resource will be on that node.
 		
-		you cannot drain the node if there is pod which is not managed by replicas or deployment.
-		because pod which is managed by replics or deployment can be easily created but, canot create indivusal pod, so cant drain that node.
+		you cannot drain the node if there is pod which is not managed by replicas or deployment. because pod which is managed by replics or deployment can be easily created but, canot create indivusal pod, so cant drain that node.
 		
 		
 	cluster upgrade: -
@@ -1802,7 +1894,7 @@ Cluster maintenence : -
 		you can update master node and worker nodes, you can take down the master node and upgrade, meanwhile other worker nodes will be accessable to user,
 		just you cant change anything in those nodes, update, edit, create and delete on any service, if any pod deleted that will be deleted, untile master node is not up and running.
 		
-		once master node is up and running then we can upgrade worked nodes
+		once master node is up and running then we can upgrade worker nodes
 		there are 3 strategys 
 		1. all worker nodes will be down and upgraded, but user will face the downtime.
 		2. upgrade one node at a time, while updating one node move resources to other node and upgrade that node.
@@ -1850,6 +1942,19 @@ Cluster maintenence : -
 			
 			$ etcdctl snapshot restore snapshot.db --data-dir /var/lib/etcd-from-Backup
 			
+			To run etcdctl command successfully you will need to mention --endpoints=https://127.30.1.2:2379 \
+																		 --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+																		 --cert=/etc/kubernetes/pki/etcd/server.crt \
+																		 --key=/etc/kubernetes/pki/etcd/server.key 
+			all these options then run whatever your command is, so you can do one thing, export all these parameters in veriables and you command directl, with the parametes you wont need to mention everytime.
+			so parameters as below 
+			export ETCDCTL_API=3
+			export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
+			export ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt
+			export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/server.crt
+			export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/server.crt
+			export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/server.key
+			
 			need to check more check here
 			https://ibm-learning.udemy.com/course/certified-kubernetes-administrator-with-practice-tests/learn/lecture/14296066#overview
 			https://uklabs.kodekloud.com/topic/practice-test-backup-and-restore-methods-2/
@@ -1878,8 +1983,7 @@ Security: -
 			encryption happens with a key can decrypted with same key, so if server need to decrypt then key must need to sent, so again hacker got key and can encrypte your data. not safe 
 		
 		asymmetric encryption: - 
-			so in this method we have public and private key, we need to configure the public key in server and can access through the private key,
-			we must keep and protect the public key.
+			so in this method we have public and private key, we need to configure the public key in server and can access through the private key, we must keep and protect the public key.
 			
 		so similer method used in certification,
 		
@@ -1890,14 +1994,11 @@ Security: -
 		$ openssl rsa -in ashu-private-key.key -pubout > ashu-public-key.pem
 		
 		now you will think in all these process where crtification comes in play?
-		so when key transfer happens from server to user and user to server, certificates also send with key, you certificat have all the details from where , who has sent,
-		so you can check is the send is autherised or not.
+		so when key transfer happens from server to user and user to server, certificates also send with key, your certificat have all the details from where , who has sent, so you can check is the send is autherised or not.
 		
-		to generate your won cwerificate, we need to autherise the certificate, there are multiple instuate who do this job, so use below command: -
+		to generate your won cerificate, we need to autherise the certificate, there are multiple instuate who do this job, so use below command: -
 		$ openssl req -new -key ashu-private-key.key -out ashu-certificate.csr -subj "/C=US/ST=ca/O=MyOrg, Inc./CN=serve.com" 
-		instuate will verify then they will sent it back to you as certified.
-		Now how to send this certifiacet, with above command, you will get "ashu-certificate.csr" file and it has some text, so you have to pest that text on 
-		there website so they will very and give it back to you, or you can send the .csr file as well.
+		instuate will verify then they will sent it back to you as signed certificate. Now how to send this certifiacet, with above command, you will get "ashu-certificate.csr" file and it has some text, so you have to pest that text on there website so they will verify and give it back to you, or you can send the .csr file as well.
  		
 		So server have its own public and private keys called as "server certicate" and user have its own public and private keys called as "client certicatate",
 		and the instuate who verity certicatate they also have certificate alled as "root certificate"
@@ -2046,12 +2147,9 @@ Security: -
 		
 	kubeConfig: -
 	
-		when you work on live project there can be multiple cluster, each cluster has its own control plane and nodes that runs workloads.
-		Now if you want to change the cluster then "kubeConfig" comes in play, you will get the config file at "/root/.kube/config"
-		If you check that file, you will get the cluster, context and current-context, so context is basically conbination of user and cluster,
-		context defines, which user will access which cluster, and "currect-context" is default context whic defines  default user to access 
-		default cluster. you can change the context with command "kubectl config use-context <context-name>" it will not change the config file, 
-		just configration.
+		$ k config --kubeconfig=/root/my-kube-config use-context <context>
+		
+		when you work on live project there can be multiple cluster, each cluster has its own control plane and nodes that runs workloads. Now if you want to change the cluster then "kubeConfig" comes in play, you will get the config file at "/root/.kube/config" If you check that file, you will get the cluster, context and current-context, so context is basically conbination of user and cluster, context defines, which user will access which cluster, and "currect-context" is default context which defines  default user to access default cluster. you can change the context with command "$ kubectl config use-context <context-name>" it will not change the config file	just configration.
 		
 		Single cluster file looks like this
 
@@ -2075,8 +2173,8 @@ Security: -
 				client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURLVENDQWhHZ0F3SUJBZ0lJWjFPYURKN0h3QVF3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TlRFeE1Ea3dOVEExTXpSYUZ3MHlOakV4TURrd05URXdNelJhTUR3eApIekFkQmdOVkJBb1RGbXQxWW1WaFpHMDZZMngxYzNSbGNpMWhaRzFwYm5NeEdUQVhCZ05WQkFNVEVHdDFZbVZ5CmJtVjBaWE10WVdSdGFXNHdnZ0VpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElCRHdBd2dnRUtBb0lCQVFESDNURU0KRmlpVExmSklSd0R2UFJNbllsMWpFV0RxOVp5cjJyUjR5SE4wOUl0SHpBZ3V3ZVdCRS9TOTRIKzdyc09Zanlmagord0Z6cDI5cjhia2JLSFVLNlRpQ0NNN05Ub1UwOGdOTHdMdktXdng5UnY3TzV0L1lOWTJzZDdmZUU1SHhadDl4CnFnSXhZRmZiQmVDVW9wY1ZERHR0cjVDU0dtTTQrN3YrL1h3MXJjclluR2VSQnNIbWRpYWFPMG41UVZpOE9kQlgKYkRJMlZqV0N0NDZaNitaRVFGVzgyaGhGZXlOVlIxcU5rZnZ1a0FBbEp5bGFJWFNrQWhnTm9wRU5kQW5GWTc2QgpMU3ZxdElwcWhDK1ArOFRNV3Fma2lhQ1YzMHFyQ1RsSlRmeG92UFBwTFVjT3RibFp1RmM0YStqN1NKcnlBeWZCCk9JNzF5UXFsZDVRQTduVjFBZ01CQUFHalZqQlVNQTRHQTFVZER3RUIvd1FFQXdJRm9EQVRCZ05WSFNVRUREQUsKQmdnckJnRUZCUWNEQWpBTUJnTlZIUk1CQWY4RUFqQUFNQjhHQTFVZEl3UVlNQmFBRkdsdE9KRFVLQWVDNEQvSApoUUYyMU8wQlhDU1NNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUNuYjBuc0hWUlVHMnRXUloweWlzbFJnbTRRCjlkeWtaMERMU0ZnRlZrUHFtaG9MR1lQN3k5L2lhZnc3MmhtYldpbjdtNGZudFg5bUgxNTIyUTZOTi90bHdEY1UKNE1TcWIreTY2ZTlYYjNyckZjM2hqTDlHbVJBY0IreFM1MGViUGtxTnJJL2xkNWZPd08vbGZTRmRyeG5qNmxpSQpQWUk5Q25IdWRiNGhMUENqY2gzOXBsb25wakpscTdLdjJBVzJZbER4YnBzc1VxaEJDUkFKc1cxajBCZGpreTN2Cm5EMDBBZDB3RURxa3Voa3pNNUtEU1l0dzB1dUJRSmlUakxTS2YrTnpLdHIxTUZRVFJhTHd4WlNJazFpcHJ4V0YKZHBUUDhIL21Rak54cXQySCtYU1g3MkoydWZpRzlObWp6UkhSaVFlN0pmR3RHZWpUbWhmdGZIdHNHdUlNCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
 				client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBeDkweERCWW9reTN5U0VjQTd6MFRKMkpkWXhGZzZ2V2NxOXEwZU1oemRQU0xSOHdJCkxzSGxnUlAwdmVCL3U2N0RtSThuNC9zQmM2ZHZhL0c1R3loMUN1azRnZ2pPelU2Rk5QSURTOEM3eWxyOGZVYisKenViZjJEV05ySGUzM2hPUjhXYmZjYW9DTVdCWDJ3WGdsS0tYRlF3N2JhK1FraHBqT1B1Ny92MThOYTNLMkp4bgprUWJCNW5ZbW1qdEorVUZZdkRuUVYyd3lObFkxZ3JlT21ldm1SRUJWdk5vWVJYc2pWVWRhalpINzdwQUFKU2NwCldpRjBwQUlZRGFLUkRYUUp4V08rZ1MwcjZyU0thb1F2ai92RXpGcW41SW1nbGQ5S3F3azVTVTM4YUx6ejZTMUgKRHJXNVdiaFhPR3ZvKzBpYThnTW53VGlPOWNrS3BYZVVBTzUxZFFJREFRQUJBb0lCQUJ2R0tKQzR3T2xqRXk0Kwp5bW5KOVBySXpVTFNkc053Q2xaS0l1dVRWT2diSzYwak5MMDZyaEszOFRvMGFTRVljam43SllkUVZGZjhHL0hHCk9sRUVndTlYT3ZFUnhFWDg5QlNkZW5QR2Z0SS9hVTJ5SzFWdXBBdHB0Y2NTZy9kVkw0elB4NXdHRE1sTHpYOEoKc1dIaERsbkZ4TG5EWjJCdys2VHBrVlhTdldEQUI4MFo2VFFqL3JRcnlveVRZMkJPelh6QW1tbHZHemR0TTR2bwpmbG0rSi9sZDVvSkFLSzR2OW9CcDYxcFo1bHZNb3Q0M1dJVkhTTmo3Y2oybVRFdnF1WS9aU3N6SVNUSmR2VXdyCjN4SjNqL0d4QXpPNXN6TWhJTDdFRnZaUEtka0RkUmZ6VGZzQTdjeDFTUU9MYUVsREdwcFczVzFQelBFRnNVbmwKcFVCR3lta0NnWUVBNDhhcjIycjRBeWgreW9ZdVdNTktsclRiQ29QK1lTWXYzZjMrQlZUR2VLaGJmY0lzNXpmSgowNUZWNGdKdWQ1VHZlNXM0T0I4NnRRTEsxaWRuNkI5WWlUYkt6RllEUHpkS2tyTmk2NGVWejF6OXNSMzcwWnllCkJHT2FjUVB0RFpEY3k3TDBPbzZkV2ZQZHVUcEEwejlCT3Z1Z1NFdG13bTh1Nng0UlVEQlNvNE1DZ1lFQTRLRWUKQ2RCc0JuUVFCUEs3eUd4cWNVWXVzU2U3a1RQa21GMER3WW5CaEdqWjRuTklwWnB5QytZdjZ0akNpZnI3d3A0UwpnZ014d2xibjB1bCtUNWZOV3I1TmlmQUNuQnBPQ1ZvSmJvRjB5ZkZqWXA2SjNhMzRJMHVnS3lFWWNidkpNcjNGCjVZMFRLTVZSNDlsYUpQMEVCamRMeGhBeXhNTmswY0M4R005YUdhY0NnWUJpcWRnZmYwSlcrOStRRW5kWTg1OEgKa09lZ3NuUXAyTVM3UUI0Y2FSQmZpMjIyRjdvam5jTEs1aFZ4aE9RYzRHS3NCQnhpRXdUM0MzS1pPUkNGTjY2KwpJUUhQYVNLVzYzaGQrMTVKNzcwd3lYTUttWlpPd2F5ZzhoUWdDRGRTdlFFbkt5a25oRWNjZzhuelJneDJkTnZvCmxMNWxFbVE4ckxTQ0c5QWNFQko3eVFLQmdDRU1VMGtLV3ZwUUZSTkZTdzlmdEFGYVhBQkFZajRvcmxja1NDc3YKUTBOaDBieVpUWFRmMWl1ZUFDckRIVXdEbXdxMUN2QUozRVpGVnZJVzNEaUZrdmJvekt1Z25pR3RWUkhYSjFBVQp4OFAyT2JNR3RDM2pMSUMwM2FtNndzZm80dDhPUUpGWFFoeGJlNExVTllqL21KbjVoTEp0SzZyN1BGZ0h6U1N4ClRRWTlBb0dBTDR2STVrTytKekNtOWdUZzFkUTQxZUxJd3RqTVRYQ1JQc3ZVcDVsWkxIaFB6OWw0RE04VUVrZTUKWHhzekVqMGhNeGZ3a0tFZEdMUEZSY3VEbmNOVkRwKzkvbG5XTWFGdTBLMUlpd3oySVg5ajVmZldvdVNFcGZETAp3R1NHK0VhbjE3RDJsOXJNRWVuMnNkRzhQbmpLRmZXRHMwNlNCQXpHOFRkY3FZYUVNdTA9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
 
-		if you have your won config file and want to use that file as default one, then replace the /root/.kube/config file with your custome file.
-		or add path in "~/.bashrc" as KUBECONFIG=/PATH/TO/YOUR-CONFIG
+		if you have your won config file and want to use that file as default one, then replace the /root/.kube/config file with your custome file.	or add path in "~/.bashrc" as KUBECONFIG=/PATH/TO/YOUR-CONFIG. 
+		
 		Actual production project with multiple clusters config file looks like this 
 	
 		apiVersion: v1
@@ -2134,51 +2232,56 @@ Security: -
 		I would like to use the dev-user to access test-cluster-1. Set the current context to the right one so I can do that with 
 		this command 
 		"$  k config use-context research --kubeconfig my-kube-config"
+		
+		To change the current context use Command
+		"$ k config set-context <context name>"
+		
+		To change the sanespace
+		"$ kubectl config set-context --current --namespace=<namespace-name>"
 				
 		Kubectx:
-			With this tool, you don't have to make use of lengthy “kubectl config” commands to switch between contexts. This tool is particularly useful to 
-			switch context between clusters in a multi-cluster environment.
+			With this tool, you don't have to make use of lengthy “kubectl config” commands to switch between contexts. This tool is particularly useful to switch context between clusters in a multi-cluster environment.
 
-		Installation:
-			sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
-			sudo ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx
+			Installation:
+				sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
+				sudo ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx
 
-		To switch to a new context:
-			kubectx <context_name>
+			To switch to a new context:
+				kubectx <context_name>
 
-		To switch back to previous context:
-			kubectx -
+			To switch back to previous context:
+				kubectx -
 
-		To see current context:
-			kubectx -c
+			To see current context:
+				kubectx -c
 
 		
 		Kubens:
 			This tool allows users to switch between namespaces quickly with a simple command.
 
-		Installation:
-			sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
-			sudo ln -s /opt/kubectx/kubens /usr/local/bin/kubens
+			Installation:
+				sudo git clone https://github.com/ahmetb/kubectx /opt/kubectx
+				sudo ln -s /opt/kubectx/kubens /usr/local/bin/kubens
 
-		To switch to a new namespace:
-			kubens <new_namespace>
-			
-		To switch back to previous namespace:
-			kubens -
+			To switch to a new namespace:
+				kubens <new_namespace>
+				
+			To switch back to previous namespace:
+				kubens -
 		
 	Role base access control (rback)
-		Roles are use to autharised a access, like crerate role define what kind of permission you want to give to this role, then role-binding comes to play
-		and you can bind that role to any user or group
+		Roles are use to autharised a access, like crerate, role define what kind of permission you want to give to this role, then role-binding comes to play and you can bind that role to any user or group
 		
 		Role and role-binding created under the name-space 
 		
 		you can check which authration methods used in system, check "/etc/kubernetes/manifests/kube-apiserver.yaml" file, 
 		check for "--authorization-mode"
 	
-		So everything in k8s get controlerd by api and api server, api server has its own prorities and api groups,
-		and api groups containes multile kinds(pod, service like that), at the initial devepolment of k8s in 2006, there were not much kinds, 
-		like pod, service configMap, those are stored in "api/v1" group or folder, but later as k8s grows they start adding the foldes as "apis/app/v1"
-		so those are in "api/v1" group those called as core api group, you can check below table as well.
+		So everything in k8s get controlerd by api and api server, api server has its own priorits and api groups,	and api groups containes multile kinds(pod, service like that), at the initial devepolment of k8s in 2006, there were not much kinds, 
+		like pod, service configMap, those are stored in "api/v1" group or folder, but later as k8s grows they start adding the foldes as "apis/app/v1"	so those are in "api/v1" group those called as core api group, you can check below table as well.
+		
+		If you want full list with apiversion and resources use Command
+		"$ k api-resources"
 		
 		| Type     | Example Path                         | Group                     | Version | YAML apiVersion                |
 		| -------- | ------------------------------------ | ------------------------- | ------- | ------------------------------ |
@@ -2210,20 +2313,23 @@ Security: -
 		/apis/networking.k8s.io/v1
 		/apis/rbac.authorization.k8s.io/v1	
 
-		so why this matters in RBACK, because when we create the role in yaml file, we need specifi the "apiGroup" and "resource", so to have 
-		knowladge of apiGroup and resource is handy 
+		so why this matters in RBACK, because when we create the role in yaml file, we need specifi the "apiGroup" and "resource", so to have knowladge of apiGroup and resource is handy 
+		
+		To Create role 
+		$ k create role --help
+		$ k create role pod-reader --verb=list, get, watch --resource=pods
 		
 		apiVersion: rbac.authorization.k8s.io/v1
 		kind: Role
 		metadata:
 		  namespace: default
 		  name: pod-reader
-		rules:								 		   	 -> its list you can add as much as you want 
-		- apiGroups: [""]      							 -> we have to tell k8s that all resources from core group("" empty string means core group)
-		  resources: ["pods"]   						 -> k8s has added all resources from core group, but which one to choose, so it will choose pod,
-		  resourcesName: ["blue", "green"]				 -> k8s has added all the pods, which one to choose, so it will choose blue and green pods
+		rules:						 -> its list you can add as much as you want 
+		- apiGroups: [""]      		 -> we have to tell k8s that all resources from core group("" empty string means core group)
+		  resources: ["pods"]   	 -> k8s has added all resources from core group, but which one to choose, so it will choose pod,
+		  resourcesName: ["blue", "green"]	-> k8s has added all the pods, which one to choose, so it will choose blue and green pods
 		  verbs: ["get", "watch", "list", "update"]		 -> user can perform only this actions on pod 
-		- apiGroups: ["apps"]							 -> Now we are telling use apiGroup as "apps", you can check above table to what comes under the "apps"
+		- apiGroups: ["apps"]                            -> Now we are telling use apiGroup as "apps"
 		  resources: ["deployments"]					 -> work on Deployment from app
 		  verbs: ["get", "list", "watch"]
 
@@ -2255,6 +2361,9 @@ Security: -
 		  configmaps  []                 [kube-proxy]    [get]
 	
 	RoleBinding
+	
+		To create role-binding
+		$ k create rolebinding read-pods --role=jane --role=pod-reader
 		
 		apiVersion: rbac.authorization.k8s.io/v1
 		kind: RoleBinding
@@ -2262,12 +2371,12 @@ Security: -
 		  name: read-pods
 		  namespace: default
 		subjects:
-		- kind: User											-> who is user, so nned to mention in name.
-		  name: jane 											-> tell kind to use user as jane (case sencative)
-		  apiGroup: rbac.authorization.k8s.io					-> where to find this user, in "rbac.authorization.k8s.io"
+		- kind: User							-> tell kind to use user as jane (case sencative)
+		  name: jane 							-> who is user, so nned to mention in name.
+		  apiGroup: rbac.authorization.k8s.io	-> where to find this user, in "rbac.authorization.k8s.io"
 		roleRef:
-		  kind: Role 											-> what we are looking for, so we are looking for role
-		  name: pod-reader 										-> what is name of role, so its a pod-reader (this must match the name of the Role or ClusterRole you wish to bind to
+		  kind: Role 							-> what we are looking for, so we are looking for role
+		  name: pod-reader 						-> what is name of role, so its a pod-reader
 		  apiGroup: rbac.authorization.k8s.io
 		
 		"$ kubectl get rolebinding"
@@ -2382,6 +2491,9 @@ Security: -
 			
 
 	ClusterRole: -
+	
+		"$ k create clusterrole reader --resource=node --verb="*" "
+		
 		apiVersion: rbac.authorization.k8s.io/v1
 		kind: ClusterRole
 		metadata:
@@ -2392,6 +2504,9 @@ Security: -
 		  verbs: ["get", "watch", "list"]
 
 	ClusterRoleBinding: -
+	
+		"$ k create clusterrolebinding read-global --clusterrole=reader --user=maga "
+		
 		apiVersion: rbac.authorization.k8s.io/v1
 		kind: ClusterRoleBinding
 		metadata:
@@ -2407,7 +2522,8 @@ Security: -
 
 
 
-		Similar to the namespace roles as we saw above, we have core-group here as well
+		Similar to the namespace roles as we saw above, we have core-group here as well, you can list down with 
+		"$ k api-resources"
 
 
 		| Type         | Example Path                            | Group                          | Version | YAML `apiVersion`                 | Example Kinds / Resources                                          |
@@ -2427,9 +2543,7 @@ Security: -
 
 	Service account: -
 		
-		while k8s works, pods and services talk and access to each other, while talking, they need to autherise each other, for that Service account comes in play.
-		service account provides the token to each pod and service, and get configured with each other, so thay can autheris each other.
-		Service accoutn can create the token CA and NS info and store it in "/var/run/secrets/kubernetes.io/serviceaccount/" location on pod.
+		while k8s works, pods and services talk and access to each other, while talking, they need to autherise each other, for that Service account comes in play. service account provides the token to each pod and service, and get configured with each other, so thay can autheris each other. Service accoutn can create the token CA and NS info and store it in "/var/run/secrets/kubernetes.io/serviceaccount/" location on pod.
  	
 		$ k get sa
 		NAME      SECRETS   AGE
@@ -2473,6 +2587,7 @@ Security: -
 		
 		"$ k describe serviceaccount dashbord-yaml-file"
 		Name:                dashbord-yaml-file
+		Name:                dashbord-yaml-file
 		Namespace:           default
 		Labels:              <none>
 		Annotations:         <none>
@@ -2492,7 +2607,7 @@ Security: -
 			  containers:
 			  - image: nginx
 				name: nginx
-			  serviceAccountName: dashbord									-> we can use service account like this
+			  serviceAccountName: dashbord		-> we can use service account like this
 		  
 		$ k describe pod/nginx
 			Name:             nginx
@@ -2550,22 +2665,15 @@ Security: -
 			
 			
 	Security in Docker: -
-		So there is one file in every linux machine "/usr/include/linux/capability.h", which defines how many capability has to user, like what he can do on this machine,
-		so wehn you create the docker container, that time limited capability are added to container, if you want fill capability, then we use --privilaged flag, so that 
-		all the capability added to docekr container.
-		
+		So there is one file in every linux machine "/usr/include/linux/capability.h", which defines how many capability user has. If you want full capability, then we use --privilaged flag, so that all the capability added to docekr container.
 		
 		We are running the "ubuntu-sleeper" pod as user who as userID as 1010, yaml file as belwo
 
 			apiVersion: v1
 			kind: Pod
 			metadata:
-			  creationTimestamp: "2025-11-13T13:54:50Z"
-			  generation: 1
 			  name: ubuntu-sleeper
 			  namespace: default
-			  resourceVersion: "784"
-			  uid: 6ee16b3d-3032-4d33-9c48-ec6d5a4aaaed
 			spec:
 			  securityContext:
 				runAsUser: 1010
@@ -2577,7 +2685,7 @@ Security: -
 				imagePullPolicy: Always
 				name: ubuntu			
 				
-		we are running the "multi-pod" pod as user who has "1002" userID,
+		we are running the "multi-container" pod as user who has "1002" userID,
 		but the "sidecar" container will be run as user "1001"
 			apiVersion: v1
 			kind: Pod
@@ -2614,8 +2722,7 @@ Security: -
 		Basically in-comming trafic is Ingress trafic and out-going traffic is Egress trafic.
 		
 		
-		In k8s-cluster every resource can talk to any other resource in default setting, but now you want to limit that talking, like which resource talk to which resource
-		we can limit using network policy
+		In k8s-cluster every resource can talk to any other resource in default setting, but now you want to limit that talking, like which resource talk to which resource,	we can limit using network policy
 		
 		apiVersion: networking.k8s.io/v1
 		kind: NetworkPolicy
@@ -2654,17 +2761,15 @@ Security: -
 		  - Egress
 		  egress:					ingress alwas start with "from" and egress alwas start with "to"
 		  - to:						-> to
-			- ipBlock:
+			- ipBlock:				-> this block is not to block the access its a IP block, block like list, range
 				cidr: 10.0.0.0/24
 			ports:
 			- protocol: TCP	
 			  port: 5978
 			  
-		Now check the above yaml now we are limiting the trafic to go only to mentioned IPs through port 5978 (this port is from db pod).
-		the pod db will send trafic to that only no any other out going.
+		Now check the above yaml now we are limiting the trafic to go only to mentioned IPs through port 5978 (this port is from db pod). the pod db will send trafic to that only no any other out going.
 		
-		Now consider there are multiple pods with same labes on differnet namespace, with default k8s setting (all resource talk to all resources), so 
-		the pods with with same labes in different namespace will send trafic to our pod.
+		Now consider there are multiple pods with same labes on differnet namespace, with default k8s setting (all resource talk to all resources), so the pods with same labes in different namespace will send trafic to our pod.
 		
 		we dont want that, to handel we can mention namespaceSelector
 		
@@ -2692,7 +2797,7 @@ Security: -
 			  port: 6379
 
 
-		Now if you do this, this will allow trafaic from whole name space and also with matching lables pod, all resources from namespace and marching pods from all resources.
+		Now if you do this, this will allow trafaic from whole namespace and also with matching lables pod, all resources from namespace and marching pods from all resources.
 
 		  policyTypes:
 		  - Ingress
@@ -2727,9 +2832,7 @@ Security: -
 		  
 
 
-		Create a network policy to allow egress traffic from the Internal application only to the payroll-service and db-service.
-		Use the spec given below. You might want to enable ingress traffic to the pod to test your rules in the UI.
-		Also, ensure that you allow egress traffic to DNS ports TCP and UDP (port 53) to enable DNS resolution from the internal pod.
+		Create a network policy to allow egress traffic from the Internal application only to the payroll-service and db-service. Use the spec given below. You might want to enable ingress traffic to the pod to test your rules in the UI. Also, ensure that you allow egress traffic to DNS ports TCP and UDP (port 53) to enable DNS resolution from the internal pod.
 
 		Policy Name: internal-policy
 		Policy Type: Egress
@@ -2789,9 +2892,7 @@ Docker storage: -
 	Data is outside the container’s internal filesystem\
 	Persistent → survives container delete 
 
-	when you create the Dockerfile and build it, docker treate the evey stage as layer and precess one by one
-	consider you have 2 different Dockerfiles, and only last two lines are different and all the above file is same, and one you have build all ready and another one have To
-	build, then docker only build last two different commands and will get all data from cashe of previous build.
+	when you create the Dockerfile and build it, docker treate the evey stage as layer and precess one by one consider you have 2 different Dockerfiles, and only last two lines are different and all the above file is same, and one you have build all ready and another one have To build, then docker only build last two different commands and will get all data from cashe of previous build.
 	
 	Volumes: -
 		$ docker volume create ashu
@@ -2813,17 +2914,20 @@ Docker storage: -
 		drwxr-xr-x 2 root root 4096 Nov 17 14:21 .
 		drwx-----x 3 root root 4096 Nov 17 14:21 ..
 		
+		volume mount method to mount volume on container: -
+			you can use this dir with -v option to mount it on container.
+			"$ docker run -v ashu:/var/lib/ nginx"
+			then all the files and folder from that dir will get mounted on container at "/var/lib/" location, aslo if you create the file in that folder on container, that file will be replicated on host machine, so even if contianer gone you will have the file.
+			
+			"$ docker run -v ashu_no:/var/lib/ nginx"
+			If volume ashu_no dose not exeist on host, docker will automaticelly create foler in volumes.
 		
-		you can use this dir with -v option 
-		$ docker run -v ashu:/var/lib/ nginx		
-		then all the files and folder from that dir will get mounted on container, aslo if you create the file in that folder on container, that file 
-		will be replicated on host machine, so even if contianer gone you will have the file.
-		$ docker run -v ashu_no:/var/lib/ nginx
-		If ashu_no dose not exeist on host docker will automaticelly create foler in volumes.
-		If you dont want to use default path then then just mention full path in docker command its calls bind mount, and the method with default path called as volume mount.
+		bind mount methos to mount volume on container: -
+			If you dont want to use default path then then just mention full path in docker command like -v /etc/ashu:/root/home (-v hostPath:containerPath) then its calls bind mount.
 		
-		you can use --mount option as well, symtem as belwo
-		--mount type=<bind>/<mount>,source=<host path>,target=<mcontainer path>
+		new method to mount the volume: -
+			you can use --mount option as well, symtem as belwo
+			--mount type=<bind>/<mount>,source=<host path>,target=<mcontainer path>
 		
 		Volumes in k8s 
 			apiVersion: v1
@@ -2845,8 +2949,7 @@ Docker storage: -
 					type: Directory
 
 	Persistent Volumes: -
-		Now consider you are on live project and every person need volume to mount, so insated of mounting the each user indivualy, admistrator can create the 
-		persistent volume so indivual user and whole team can access that PV, so no need to create seperat volume mount every time.
+		Now consider you are on live project and every person need volume to mount, so insated of mounting the each user indivualy, admistrator can create the persistent volumes so indivual user and whole team can access that PV, so no need to create seperat volume mount every time.
 		
 		apiVersion: v1
 		kind: PersistentVolume
@@ -2869,8 +2972,7 @@ Docker storage: -
 		ashu-pv   5Gi        RWO            Retain           Available                          <unset>                          5s
 
 	Persistent Volumes claim: -
-		PCV is like claimig the volume from existing volume, is might be from PV, if you dont specify PV then k8s will create PV automaticely on the bases of 
-		storage class.
+		PCV is like claimig the volume from existing volume, is might be from PV, if you dont specify PV then k8s will create PV automaticely on the bases of storage class.
 	
 		apiVersion: v1
 		kind: PersistentVolumeClaim
@@ -2973,27 +3075,18 @@ Networking: - (not understand much, becasue dont have much knoladge on networkin
 	DNS: -
 		
 		Domain name basics 
-			The first part of www.google.com is www, which is a subdomain. A subdomain is used to organize different sections of a website.
-			For example, mail.google.com is Google’s email service, and drive.google.com is Google Drive. The www subdomain is traditionally 
-			used to indicate the web server, but technically it’s just one of many possible subdomains.
+			The first part of www.google.com is www, which is a subdomain. A subdomain is used to organize different sections of a website. For example, mail.google.com is Google’s email service, and drive.google.com is Google Drive. The www subdomain is traditionally used to indicate the web server, but technically it’s just one of many possible subdomains.
 			
-			The middle part, google, is the second-level domain (SLD). This is the main name of the website that the organization or individual 
-			owns and controls. For instance, in google.com, Google owns the “google” part, and in example.com, someone else could own “example”. 
-			The second-level domain represents the core identity of the website.
+			The middle part, google, is the second-level domain (SLD). This is the main name of the website that the organization or individual owns and controls. For instance, in google.com, Google owns the “google” part, and in example.com, someone else could own “example”. The second-level domain represents the core identity of the website.
 			
-			The last part, .com, is the top-level domain (TLD). TLDs indicate the type or category of the domain, such as .com for commercial
-			businesses, .org for organizations, .edu for educational institutions, or .gov for government sites. Together, the subdomain, 
-			second-level domain, and TLD form a fully qualified domain name (FQDN), which uniquely identifies a resource on the internet.
+			The last part, .com, is the top-level domain (TLD). TLDs indicate the type or category of the domain, such as .com for commercial businesses, .org for organizations, .edu for educational institutions, or .gov for government sites. Together, the subdomain, second-level domain, and TLD form a fully qualified domain name (FQDN), which uniquely identifies a resource on the internet.
+			
+			Note: - if you are hitting any url for 1st time and DNS not able to find in cache or local DNS it will go to "Root server dns" (daddy of DNS) its a 13 DNS server knows all the URLs, IPs and know where to rought each request.
 
 	Ping google.com -> result on screen 
-	When you run `ping www.google.com`, ping first needs an IP address, so it asks the system resolver to look up the name. The resolver follows the 
-	order in `/etc/nsswitch.conf` (usually `hosts: files dns`). First it checks `/etc/hosts` for a matching entry. If the name is not there, Linux 
-	reads the DNS servers from `/etc/resolv.conf` and sends a DNS query (UDP port 53) to the first nameserver listed. If no reply comes, it tries the 
-	next nameserver. The DNS server returns the IP address for google.com.
+	When you run `ping www.google.com`, ping first needs an IP address, so it asks the system resolver to look up the name. The resolver follows the order in `/etc/nsswitch.conf` (usually `hosts: files dns`). First it checks `/etc/hosts` for a matching entry. If the name is not there, Linux reads the DNS servers from `/etc/resolv.conf` and sends a DNS query (UDP port 53) to the first nameserver listed. If no reply comes, it tries the next nameserver. The DNS server returns the IP address for google.com.
 
-	With the IP address known, ping creates ICMP Echo Request packets. The Linux kernel checks the routing table to choose the path, and if needed, 
-	performs ARP to get the MAC address of the next hop. Then the ICMP packets are sent to the destination. The remote machine replies with ICMP Echo 
-	Reply packets, and ping displays the results (time, TTL, packet size). This repeats every second until you stop the command.
+	With the IP address known, ping creates ICMP Echo Request packets. The Linux kernel checks the routing table to choose the path, and if needed, performs ARP to get the MAC address of the next hop. Then the ICMP packets are sent to the destination. The remote machine replies with ICMP Echo Reply packets, and ping displays the results (time, TTL, packet size). This repeats every second until you stop the command.
 
 	if you want to see from where to where your request is going when you ping use "traceroute google.com" command, you will get all servers IPs
 	
@@ -3002,7 +3095,7 @@ Networking: - (not understand much, becasue dont have much knoladge on networkin
 	Tracing route to google.com [142.250.195.46]
 	over a maximum of 30 hops:
 
-	  1     1 ms     1 ms     5 ms  192.168.1.1						-> you can search these IPs in google, and you will get the lication of each hops server.
+	  1     1 ms     1 ms     5 ms  192.168.1.1		-> you can search these IPs in google, you will get the lication of each Server.
 	  2    36 ms    16 ms    25 ms  110.226.15.255					-> pune 
 	  3    67 ms    36 ms     7 ms  125.20.27.9						-> bhopal
 	  4     8 ms     8 ms    10 ms  116.119.161.135					-> bangalore
@@ -3053,9 +3146,7 @@ Helm: -
 	4 directories, 10 files
 
 	if you check the "Chart.yaml" you will see the "apiVersion: v2" that means this folder is created with helm3 
-	if you see "apiVersion: v1" then helm2 is used.
-	also you will get the "appVersion: <something>" this means version of application which is runing with helm, here I have create the hello-world
-	application. And simpy "version" means verison of the char which we created.
+	if you see "apiVersion: v1" then helm2 is used. also you will get the "appVersion: <something>" this means version of application which is runing with helm, here I have create the hello-world application. And simply "version" means verison of the char which we created.
 	
 	Templating: -
 		template only works with helm, and we need to keep resource files in templates filder and values file outside the templates folder.
@@ -3119,91 +3210,87 @@ Helm: -
 	
 
 Kustomize: -
-	so in live project, live project runs in multiple stages like production, staging, deployment. like that all every stage has different configuration,
-	conside ex, there is one deployment in production only one replics is there in staging there are 2 and in deployment there will be 5.
+	Live project runs in multiple stages like production, staging, deployment. like that all every stage has different configuration,
+	conside ex, there is one deployment in production, only one replics is there, in staging there are 2 and in deployment there will be 5.
 	
-	so there are 3 dirs then you will always need to keep track of replicas in each yaml and if you miss one of them there will be big issue, so to adress this issue 
-	we have kustomize
+	so there are 3 dirs then you will always need to keep track of replicas in each yaml and if you miss one of them there will be big issue, so to adress this issue we have kustomize
 	
 	you will need to manage only one yaml file and then Kustomize will take care of all the other path.
-	
-					$ tree ashu-prod/
-					ashu-prod/
-					|-- base
-					|   `-- deployment-yaml.yaml
-					`-- overlays
-						|-- deploy
-						|   `-- kustomixation.yaml
-						|-- dev
-						|   `-- kustomixation.yaml
-						`-- stag
-							`-- kustomixation.yaml
 
-					6 directories, 4 files
+	$ tree ashu-prod/
+	ashu-prod/
+	|-- base
+	|   `-- deployment-yaml.yaml
+	`-- overlays
+		|-- deploy
+		|   `-- kustomixation.yaml
+		|-- dev
+		|   `-- kustomixation.yaml
+		`-- stag
+			`-- kustomixation.yaml
 
-					$ cat ashu-prod/base/deployment-yaml.yaml 
-					apiVersion: apps/v1
-					kind: Deployment
-					metadata:
-					  labels:
-						app: deployment-yaml
-					  name: deployment-yaml
-					spec:
-					  replicas: 3
-					  selector:
-						matchLabels:
-						  app: deployment-yaml
-					  strategy: {}
-					  template:
-						metadata:
-						  labels:
-							app: deployment-yaml
-						spec:
-						  containers:
-						  - image: nginx
-							name: nginx
-							resources: {}
-					status: {}
+	6 directories, 4 files
 
-					$ cat ashu-prod/overlays/deploy/kustomixation.yaml 
-					spec:
-					  replicas: 1
+	$ cat ashu-prod/base/deployment-yaml.yaml 
+	apiVersion: apps/v1
+	kind: Deployment
+	metadata:
+	  labels:
+		app: deployment-yaml
+	  name: deployment-yaml
+	spec:
+	  replicas: 3
+	  selector:
+		matchLabels:
+		  app: deployment-yaml
+	  strategy: {}
+	  template:
+		metadata:
+		  labels:
+			app: deployment-yaml
+		spec:
+		  containers:
+		  - image: nginx
+			name: nginx
+			resources: {}
+	status: {}
 
-	so you will need to manage the "ashu-prod/base/deployment-yaml.yaml" file only, then the "ashu-prod/overlays" other things from "overlays" dir will take care
-	this example only include Deployment but there will be more files in base dir. so it is easy to manage.
+	$ cat ashu-prod/overlays/deploy/kustomixation.yaml 
+	spec:
+	  replicas: 1
+
+	so you will need to manage the "ashu-prod/base/deployment-yaml.yaml" file only, then the "ashu-prod/overlays" other things from "overlays" dir will take care, this example only include Deployment but there will be more files in base dir. so it is easy to manage.
 	
 	
 	so it is similatr to helm but helm is too advence, and overall can manage the whole k8s, but kustomization has limination and limited things.
 	
 	$ cat ashu/kustomization.yaml				we can add apiVersion and Kind, but not mandatary but adding is good practice.
 		resources:
-			- deployment.yaml						these are the files, which need to manage.
+			- deployment.yaml					these are the files, which need to manage.
 			- pod.yaml
 			
 		commonLabels:							these is what we need to manage in those files
-			company: ashu-common-name			so we are adding the command name in those yaml file, so similarly we can manage lot of things from here.
+			company: ashu-common-name			we are adding the common name in those file, similarly we can manage lot of things from here.
 			
 	Create all files kustomization.yaml, deployment.yaml and pod.yaml then run 
-	$ kustomize build ashu/
-	command, this command will just crate configuration in yaml file, not create anything.
-	you will need to redirect output in file or use pipe command with it.
+	"$ kustomize build ashu/"                   -> this command will just create configuration in yaml file, not create anything. you will need to redirect.
 	
-	$ kustomize build ashu/ | k create -f -
+	$ kustomize build ashu/ | k apply -f -
 	or 
 	$ kustomize build ashu/ > kustomization.yaml
 	$ k create -f kustomization.yaml
 	or
-	$ Kustomize apply -k ashu/						-k for kustomization
+	$ k apply -k ashu/						-k for kustomization, create with kubectl command.
 	
 	to delete use below commands 
 	
 	$ kustomize build ashu/ | k delete -f -
 	or
-	$ Kustomize delete -k ashu/						-k for kustomization
+	$ k delete -k ashu/						-k for kustomization
 
 
-	in live project there will be lot of folders and resource files, and you want to crate resource then it will be deficult to create all resource once,
-	this aslo take care by the kustomization, just create yaml file and mention files, and you are just one command away from create full project.
+	in live project there will be lot of folders and resource files, and you want to crate resource then it will be deficult to create all resource once, this aslo take care by the kustomization, just create kustomiza.yaml file and mention all folders, and you are just one command away from create full project.
+	
 	yaml file and dir structor as below.
 
 	$ tree ashu-prod/
@@ -3236,11 +3323,7 @@ Kustomize: -
 	$ kustomize build ashu-prod/ | k create -f -
 	your all resources will be created.
 	
-	
-	Now see, there will 100s of files and dir and writing those and maintains will be pain again, so to simplyfy again we can create each dirs Kustomize.yaml file 
-	and mention yaml file, and in parent Kustomize.yaml just mention the dir names, parent Kustomize.yaml will pick up the all child Kustomize.yaml and will create
-	resources accordingly
-	
+	Now see, there will 100s of dirs and files and writing those and maintains will be pain, so to simplyfy again we can create kustomize.yaml file in each dir and mention the names of dir in main/base/parent Kustomize.yaml, parent Kustomize.yaml will pick up the all child Kustomize.yaml and will create resources accordingly
 	
 	$ tree ashu-prod/
 	ashu-prod/
@@ -3266,7 +3349,7 @@ Kustomize: -
 		- dev/
 		- stage/
 		
-	child kustomization.yaml from deploy folder
+	child deploy/kustomization.yaml from deploy folder
 	
 	resoruces:
 		- pod-dep.yaml
@@ -3285,15 +3368,20 @@ Kustomize: -
 		  - nginx/nginx-depl.yaml
 		  - nginx/nginx-service.yaml
 		  
-		commanTransformation: -
-			with kustomization we can add labes, namespaces and annotations
+	CommanTransformation: -
+			with kustomization we can add labes, namespaces and annotations, in multiple files with single kustomization.yaml file.
 			- commandLabel
 			- namePrefix / namesuffix
 			- namespace
-			-commonAnnotations
+			- commonAnnotations
 		  
 	ImageTransformation: -
 		we can transform image as well, change the existing image from yaml with new image.
+		
+		$ kustomization.yaml
+			image:
+			- name: nginx           -> this is not a container name, its a image name, which you have mention in yaml as image: nginx
+			  newName: busyBox
 		
 
 		You can kustomize the whole project with reference of below file,
@@ -3321,23 +3409,20 @@ Kustomize: -
 				  
 				  
 	Patch: -
-		so it similar to the transform, but more specific, line chnaging just name of resource, changing name, yeah specific,
-		if there are multiple kustomization files, then you will need to add parent kustomization.yaml files path as "../../base", some thing like that
-		there are two differnt types of patch one is json 6902 patch and another one is strategic merge patch,
+		so it similar to the transform, but more specific, line changing, just name of resource, changing name, yeah specific, if there are multiple kustomization files, then you will need to add parent kustomization.yaml files path as "../../base", some thing like that, there are two differnt types of patch one is json 6902 patch and another one is strategic merge patch,
 		
 		json 6902 Patch
 		kustomization.yaml
 			patches:
 				- taget:
 					kind: deployment
-					name: <deployment name>
+					name: <deployment name which you want to change>
 				patch: |-
 					- op: replace
 					  path: /metadata/name
 					  value: <new deployment name>
 					  
-		If you apply this patch then, it will find the "deployment", then will find "<deployment name>", the will find "/metadata/name" then will replace older name 
-		with  "<new deployment name>".
+		If you apply this patch then, it will find the "deployment", then will find "<deployment name which you want to change>", the will find "/metadata/name" then will replace older name with  "<new deployment name>".
 		
 		strategic merge patch
 		kustomization.yaml
@@ -3376,7 +3461,7 @@ Kustomize: -
 				spec:
 				  replicas: 5
 
-		To add any parameters, below filw will add org labels, json 6902 patch
+		To add any parameters, below file will add org labels, json 6902 patch
 		
 			kustomization.yaml
 				patches:
@@ -3496,3 +3581,71 @@ Kustomize: -
 					
 		Components: - need to check more on Components
 		https://notes.kodekloud.com/docs/CKA-Certification-Course-Certified-Kubernetes-Administrator/2025-Updates-Kustomize-Basics/Components
+		
+TroubleShooting: -
+
+	application trobleshooting: -
+		Note: - to debuge application, get the whole idea of app, from which pod connted to which svc which pod to forwared and target, visuallise this then check each resource connect to other in proper manner or not, this is very easy, I have checked everything too easy dont afreade.
+		
+		If a Pod is stuck in Pending it means that it can not be scheduled onto a node.
+		If a Pod is stuck in the Waiting state, then it has been scheduled to a worker node, but it can't run on that machine. The most common cause of Waiting pods is a failure to pull the image.
+		If a Pod is stuck in the Terminating state, it means that a deletion has been issued for the Pod, but the control plane is unable to delete the Pod object.
+		
+		you can check the logs of previous pod which is restarting again and again with below command
+		"$ k log web -f --previous"
+		-f         -> watch continus 
+		--previous -> watch logs of previous pods
+		
+		Very nice documentation: - https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/
+	
+	Controle plane TroubleShooting: -
+		Very nice documentation: - https://kubernetes.io/docs/tasks/debug/debug-cluster/
+		
+		start from the controlplan, check if all the pods are working or not, check describe and logs 
+		"$ k logs <pod-name>"
+		
+		The first thing to debug in your cluster is if your nodes are all registered correctly. Run the following command:
+		"$ k get nodes"
+		
+		"$ k cluster-info dump > file.yaml" -> this command will give you everything about your cluster, huge file will get generated.
+		
+		"$ kubectl describe node kube-worker-1"
+		
+		there are three major components are there to check on master node (control plain)
+		1. kube-apiserver
+		2. kube-controller-manager
+		3. kube-scheduler.
+		check the status of all three components
+		service <component> status 
+		
+		and another two componenst on worker node 
+		1. kubelet
+		2. kube-proxy
+		check the status of all three components
+		service <component> status 
+
+		check kube-apiserver-master with below command: -
+		"$ k logs kube-apiserver-master -n=kbe-system"
+		
+		in case componenets deploied as process natively in vm then you can check the logs as below 
+		"$ journalct -u kube-aiserver"
+		
+		Control Plane node logs location
+		/var/log/kube-apiserver.log - API Server, responsible for serving the API
+		/var/log/kube-scheduler.log - Scheduler, responsible for making scheduling decisions
+		/var/log/kube-controller-manager.log - a component that runs most Kubernetes built-in controllers, with the notable exception of scheduling (the kube-scheduler handles scheduling).
+		
+		Worker Node logs location.
+		/var/log/kubelet.log - logs from the kubelet, responsible for running containers on the node
+		/var/log/kube-proxy.log - logs from kube-proxy, which is responsible for directing traffic to Service endpoints
+		
+	Worker node failure: -
+		https://kubernetes.io/docs/tasks/debug/debug-cluster/kubectl-node-debug/
+		
+		1st ssh to workr node, check if servic kubelet is running or not.
+		
+		all kubelet configuration is at /var/lib/kubelet/config.yaml 
+		If you find anything strange you should check this conf file.
+		also /etc/kubernetes/kubelet.conf check this file, if you edit this file just restart kubelet service once.
+		
+		

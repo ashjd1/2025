@@ -8,36 +8,25 @@ Cisco CCNP (Enterprise)
 		connect both machine at eth0 to switch and switch will take care of data transfer, and congrats you have created the small network.
 		
 	Routing: -
-		A Router is a physical device that connects multiple networks to each other, also router is shared in multiple networs it as ips as per networks
-		each netwokr assinge one ip to router, so one router can have multiple IPs
-		
+		A Router is a physical device that connects multiple networks to each other, also router is shared in multiple networs, and router can have multiple ips, each per network. each netwokr assinge one ip to router, so one router can have multiple IPs
 		
 	Switch:
-		A switch is a networking device that connects multiple devices within the same local network (like computers, printers, or servers in a home 
-		or office). It uses MAC addresses to send data only to the specific device it’s meant for, making communication fast and efficient. Switches 
-		operate at the data link layer and help create a smooth internal network where devices can easily share information.
+		A switch is a networking device that connects multiple devices within the same local network (like computers, printers, or servers in a home or office). It uses MAC addresses to send data only to the specific device it’s meant for, making communication fast and efficient. Switches operate at the data link layer and help create a smooth internal network where devices can easily share information.
 
 	Router:
-		A router connects multiple networks together, most commonly linking your local home or office network to the internet. It uses IP addresses to 
-		determine the best path for data to travel across networks. Routers manage traffic between networks, assign IP addresses, and often include 
-		extra features like firewalls or Wi-Fi, ensuring secure and organized communication.
+		A router connects multiple networks together, most commonly linking your local home or office network to the internet. It uses IP addresses to determine the best path for data to travel across networks. Routers manage traffic between networks, assign IP addresses, and often include extra features like firewalls or Wi-Fi, ensuring secure and organized communication.
 
 	Gateway:
-		A gateway acts as a bridge between two different networks that may use different protocols or architectures. It translates data from one 
-		format to another so devices on one network can communicate with devices on another. Gateways are often found at network edges, enabling 
-		communication between incompatible systems, such as connecting a company’s internal network to an external service or cloud platform.
+		A gateway acts as a bridge between two different networks that may use different protocols or architectures. It translates data from one format to another so devices on one network can communicate with devices on another. Gateways are often found at network edges, enabling communication between incompatible systems, such as connecting a company’s internal network to an external service or cloud platform.
 		
 		
 	Diff in Router and Gateway
 
 	Here’s the difference between a router and a gateway in simple terms:
 	Router
-		A router connects similar types of networks (for example, your home network to the internet). It mainly uses IP addresses to route data 
-		between networks. Routers decide the best path for data to travel and handle traffic between connected networks.
+		A router connects similar types of networks (for example, your home network to the internet). It mainly uses IP addresses to route data between networks. Routers decide the best path for data to travel and handle traffic between connected networks.
 	Gateway
-		A gateway connects different or incompatible networks (for example, a network using one protocol to another using a different protocol). 
-		It translates data formats, protocols, or architectures so devices on each network can communicate. A gateway is more complex than a router 
-		because it performs conversion in addition to routing.
+		A gateway connects different or incompatible networks (for example, a network using one protocol to another using a different protocol). It translates data formats, protocols, or architectures so devices on each network can communicate. A gateway is more complex than a router because it performs conversion in addition to routing.
 
 	In short:
 	Router = connects similar networks + routes data.
@@ -46,30 +35,18 @@ Cisco CCNP (Enterprise)
 	DNS: -
 		
 		Domain name basics 
-			The first part of www.google.com is www, which is a subdomain. A subdomain is used to organize different sections of a website.
-			For example, mail.google.com is Google’s email service, and drive.google.com is Google Drive. The www subdomain is traditionally 
-			used to indicate the web server, but technically it’s just one of many possible subdomains.
+			The first part of www.google.com is www, which is a subdomain. A subdomain is used to organize different sections of a website. For example, mail.google.com is Google’s email service, and drive.google.com is Google Drive. The www subdomain is traditionally used to indicate the web server, but technically it’s just one of many possible subdomains.
 			
-			The middle part, google, is the second-level domain (SLD). This is the main name of the website that the organization or individual 
-			owns and controls. For instance, in google.com, Google owns the “google” part, and in example.com, someone else could own “example”. 
-			The second-level domain represents the core identity of the website.
+			The middle part, google, is the second-level domain (SLD). This is the main name of the website that the organization or individual owns and controls. For instance, in google.com, Google owns the “google” part, and in example.com, someone else could own “example”. The second-level domain represents the core identity of the website.
 			
-			The last part, .com, is the top-level domain (TLD). TLDs indicate the type or category of the domain, such as .com for commercial
-			businesses, .org for organizations, .edu for educational institutions, or .gov for government sites. Together, the subdomain, 
-			second-level domain, and TLD form a fully qualified domain name (FQDN), which uniquely identifies a resource on the internet.
+			The last part, .com, is the top-level domain (TLD). TLDs indicate the type or category of the domain, such as .com for commercial businesses, .org for organizations, .edu for educational institutions, or .gov for government sites. Together, the subdomain, second-level domain, and TLD form a fully qualified domain name (FQDN), which uniquely identifies a resource on the internet.
 			
-			Note: - if you are hitting any url for 1st time and DNS not able to find in cache or local DNS it will go to "Root server dns" (daddy of DNS)
-			its a 13 DNS server knows all the URLs, IPs and know where to wrought each request.
+			Note: - if you are hitting any url for 1st time and DNS not able to find in cache or local DNS it will go to "Root server dns" (daddy of DNS) its a 13 DNS server knows all the URLs, IPs and know where to rought each request.
 
 	Ping google.com -> result on screen 
-	When you run `ping www.google.com`, ping first needs an IP address, so it asks the system resolver to look up the name. The resolver follows the 
-	order in `/etc/nsswitch.conf` (usually `hosts: files dns`). First it checks `/etc/hosts` for a matching entry. If the name is not there, Linux 
-	reads the DNS servers from `/etc/resolv.conf` and sends a DNS query (UDP port 53) to the first nameserver listed. If no reply comes, it tries the 
-	next nameserver. The DNS server returns the IP address for google.com.
+	When you run `ping www.google.com`, ping first needs an IP address, so it asks the system resolver to look up the name. The resolver follows the order in `/etc/nsswitch.conf` (usually `hosts: files dns`). First it checks `/etc/hosts` for a matching entry. If the name is not there, Linux reads the DNS servers from `/etc/resolv.conf` and sends a DNS query (UDP port 53) to the first nameserver listed. If no reply comes, it tries the next nameserver. The DNS server returns the IP address for google.com.
 
-	With the IP address known, ping creates ICMP Echo Request packets. The Linux kernel checks the routing table to choose the path, and if needed, 
-	performs ARP to get the MAC address of the next hop. Then the ICMP packets are sent to the destination. The remote machine replies with ICMP Echo 
-	Reply packets, and ping displays the results (time, TTL, packet size). This repeats every second until you stop the command.
+	With the IP address known, ping creates ICMP Echo Request packets. The Linux kernel checks the routing table to choose the path, and if needed, performs ARP to get the MAC address of the next hop. Then the ICMP packets are sent to the destination. The remote machine replies with ICMP Echo Reply packets, and ping displays the results (time, TTL, packet size). This repeats every second until you stop the command.
 
 	if you want to see from where to where your request is going when you ping use "traceroute google.com" command, you will get all servers IPs
 	
@@ -78,7 +55,7 @@ Cisco CCNP (Enterprise)
 	Tracing route to google.com [142.250.195.46]
 	over a maximum of 30 hops:
 
-	  1     1 ms     1 ms     5 ms  192.168.1.1						-> you can search these IPs in google, and you will get the lication of each hops server.
+	  1     1 ms     1 ms     5 ms  192.168.1.1	     -> you can search these IPs in google, you will get the lication of each Server.
 	  2    36 ms    16 ms    25 ms  110.226.15.255					-> pune 
 	  3    67 ms    36 ms     7 ms  125.20.27.9						-> bhopal
 	  4     8 ms     8 ms    10 ms  116.119.161.135					-> bangalore
@@ -103,14 +80,19 @@ Cisco CCNP (Enterprise)
 
 	"$ ip link"
 	this command will list and modify all interfaces on VM
+	
 	"$ ip adder"
 	this command will list ips assigned to that interfaces
+	
 	"$ ip adder add 192.0.0.1"
 	This command will set the ip to interface
+	
 	"$ ip route"
 	will list the routing tabel
+	
 	"$ ip route add192.0.0.1"
 	will add entries in the routing table
+	
 	"$ cat /proc/sys/net/ipv4/ip_forward" -> 1
 	if 1 then ip forwarding is enabled
 	
@@ -476,8 +458,7 @@ Network Namespaces: -
 	why switch, because, switch is common hub or center where all the samespaces can connect and communate to eachother whcih called as network, otherwise we 
 	have to create each veth betwen each namepaces which is messy.
 	
-	another mini project create bridge, create three namespace and make connect to each other, each machine shoul pong to other, also make shour
-	host shoud ping machines.
+	another mini project create bridge, create three namespace and make connect to each other, each machine should ping to other, also make shour host shoud ping machines.
 	
 		$ ip netns add ashu 
 		$ ip netns add ashutosh 
@@ -679,8 +660,16 @@ Container networking interface (CNI): - (check CNI part once again, you dident u
 	asn. "$ ls /etc/cni/net.d/"
 		  10-flannel.conflist
 		  
-		  
+Service networking: -
+	When you create a **Service**, Kubernetes assigns it a **virtual ClusterIP** and stores the Service details in **etcd**.
+	kube-proxy on every node watches the API Server and detects the new Service and its backend Pods (Endpoints).
+	kube-proxy creates **iptables/IPVS rules** that map the Service's virtual IP to one of the backend Pod IPs.
+	When a Pod sends traffic to the Service IP, the Linux kernel follows those rules and forwards the request to a selected backend Pod (with load balancing).
+
 Ingress in k8s: -
+	
+	https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#-em-ingress-em-
+	https://kubernetes.io/docs/concepts/services-networking/ingress/
 	
 	if you are using some URL then there is some default port which are configured to protocalls
 	like 
@@ -692,14 +681,9 @@ Ingress in k8s: -
 	| ssh://  	 | 22           |	
 
 
-	So why we need ingress in k8s, in the production we need to expose our product to whole internet, so we need to create serivce and load balencer and configure it to acceess,
-	consider there are multiple services, so we will need multiple load balence, and its not feasalbe, to solve this problem we have ingress service.
-	Ingress can manage comming trafic can confiure port to the external world.
+	So why we need ingress in k8s, in the production we need to expose our product to whole internet, so we need to create serivce and load balencer and configure it to acceess, consider there are multiple services, so we will need multiple load balence, and its not feasalbe, to solve this problem we have ingress service. Ingress can manage comming trafic can confiure port to the external world.
 	
 	Nginx can be used as loadbalencer
-	
-	
-	
 	
 User
  │
