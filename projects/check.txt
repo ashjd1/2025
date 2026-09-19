@@ -1,3 +1,7 @@
+storageClass, how does it effect volumes
+statefull and sateless
+
+
 have you done nay coust optimization of any infra?
 what kind of issues do you face on daily bases in your daily task?
 NodeAfinity(hard rule) TaintTolerration(soft rule)
@@ -37,11 +41,11 @@ terraform lifecycle policy
 hard vs soft link 
 cmd vd entrypoint
 what is ingressController?
-how is your day, as devops engineer role.
+	how is your day, as devops engineer role.
 git versitioning strategy
 kube proxy
 can pod talk to each other and how?
-what kind of issue you face in deploymrnt
+	what kind of issue you face in deploymrnt
 
 last question: -
 	- breaf introduction
@@ -61,17 +65,77 @@ last question: -
 	- have you done any cluster upgrade, explain how to do cluserUpgrade? kuberneter version upgrade.
 	- what kind of issues do you face on daily bases in your daily task?
 	- if any applicaiton is show, or not working properly, how will you trouble shoot?
-	- why you are looking for change?
+		- why you are looking for change?
 	- if noed is full. or 90% full, how to stop sheduling pod to schedule there?
-	- what problem is solving the helm chart?
+		- what problem is solving the helm chart?
 	- how to implemet the sesurity in k8s? -> RBACK -> pod secure policy -> Network policy -> image scanning tool -> secure registries
-	- how to secure the pod itselt and security inside the pod?
+	- how to secure the pod itselt and security inside the pod? -> securityContext
 	- what is security context in k8s?
 	- different types if deployment stratagy,canary and blue green deployment?
-	- consider any publick facing URL and explain, how does works, like user hits the URL till the pod gets the request
+	- consider any publick facing URL and explain, how does works, like user hits the URL till the pod gets the request						 
+						 
+1) where does pv exist in Kubernetes
+2) ingress vs service
+3) replica set vs deployment
+4) diff between lb and ingress
+	5) SSL cert setup through LB
+	6) how to end https on LB
+7) how to create secret
+8) stages of maven
+9) version of Kubernetes
+10) pv and pvc diff
+11) how to write deployment file
+12) what is deamonset, stateful set
+13) how does pods communicate across diff namespace ? How to enable and disable
+	14) how to make sure existing pods are distributed across all the nodes uniformly ?
+15) sidecar container ?
+16) different deployment strategy in k8 ? (like rolling update, blue green, canry)
+
+
+tech mahindra question: -
+
+	- explain kunernetes arch, 
+		- explain ci/cd flow, what are the satge in workflow. explain stages from your workflow.
+	- are you using k8s?
+	- command to list out the running containers
+	- write the simple Dockerfile
+	- what is diff in ADD and COPY, ENTRYOPINT and CMD,
+	- command to convert image to tar file, 
+	- deployed pod, gooing in crash loop back off, and restarting continusly, what could be chansce that pod going to crash loop back off.
+	- pod in in pending state what could be the reason?
+	- what does "k cordon" command does?
+	- what does "k drain" command does?
+	- types of the probs? what probs are used?
+	- deployment and statefulset diff?
+	- name of resource which can scheduled pod on all node of cluster.
+	- if k8s node become not ready, what will you check?
+	- can we schedule a pod if scheduler is not working? ans -> we can mention the nodeName yaml file, which can help pod to deploy.
+	- on control plain, scheduler is not working , we need to deploy new pod, then what we can do?
+	- kubelet is not working, what are the step do you take to troubleshoot?
+
+Need to check
+	- what is diff in normal docekr image and harden docekr image?
+	- how does destroless image works if image dosent contianes the OS?
+	- list down all the important config files location in cluster.
+	- check on cluter, user, context and current-context
 	
-
-
+	- You have an application deployed on Kubernetes that is experiencing increased traffic. How would you scale the application to handle the increased load?
+	- While troubleshooting a networking issue in the cluster, you noticed kube-proxy in the logs. What is the role of kube-proxy in Cluster?
+	- Your team is planning a high-availability Kubernetes cluster. Describe the Process and Considerations for Designing a High-Availability Kubernetes Cluster
+	- In your Kubernetes environment, a master or worker node suddenly fails. What happens when the master or the worker node fails?
+	- ingress?
+	- what is external name service?
+	- how do you monitor applicaiton in k8s cluster?
+	- check helm chart
+	- Company is very concerned about Securing Clusters. List some security measures that you can take while using Kubernetes.
+	- explain RBACK
+	- wha does kubelet does on node?
+	- why we should take k8s instaed of docker swarm?
+	- how how many servaces are you wroked on?
+	- what is satet full and state less applications?
+	
+	
+	
                 kubectl apply
                       │
                       ↓
@@ -129,57 +193,3 @@ last question: -
                                ↓
                          CrashLoopBackOff
 						 
-						 
-						 
-1) where does pv exist in Kubernetes
-2) ingress vs service
-3) replica set vs deployment
-4) diff between lb and ingress
-	5) SSL cert setup through LB
-	6) how to end https on LB
-7) how to create secret
-8) stages of maven
-9) version of Kubernetes
-10) pv and pvc diff
-11) how to write deployment file
-12) what is deamonset, stateful set
-13) how does pods communicate across diff namespace ? How to enable and disable
-	14) how to make sure existing pods are distributed across all the nodes uniformly ?
-15) sidecar container ?
-16) different deployment strategy in k8 ? (like rolling update, blue green, canry)
-
-
-
-
-create k8s cluser from scractch
-
-vpc - > subnet as per typre (one must be private for publich to access) -> router -> VMs
-
-upgrade k8s: -
-	masterNore: -
-		upgraed kubeadm -> kubeadm upgrade plan -> kubeadm upgrade apply 1.34.x -> apt install kubelet and kubeclt (upgrade kubelet)-> daemonReload
-	WorkerNode: -
-		drain and uncorder the node -> apt upgrade kubeadm:1.37.X -> kubeadm upgrade node -> systemctl daemon-reload -> 
-	prerequisite
-		1st cordon your nodes (No pods will be scheduled on nodes)
-		2nd go through the relese notes.
-		3rd test the upgrade on lower level 1st like on unit stage dev if that works then only go to the production.
-		4th control and workers should be on same verison.
-		5th if you have a cluster autoscaler, maje sure to match version with control node.
-		6th there must be at least 5 IP availbe from subnet.
-		7th kubelet also match with control node.
-	
-	in EKS
-		1st its a managed k8s, means only master node will be managed.
-		means it can do desastery recovery, security, and scalling up/down the API server.
-		2nd upgrade the node group/ nodes/ fargets
-		3rd upgrade addOns kubeProxy and all
-		
-		
-		
-how request travel in k8s?		
-kubeclt -> apiServer -> etcd -> scheduler -> kubelet -> containerRuntime
-
-
-
-Hi I am ashutosh and I am woring with persistent from past 4 years, I help my team to automate the multiple manual taks by creatong the shell script, also created multiple workflow for the continual integration, which improved the 
